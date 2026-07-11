@@ -1,0 +1,468 @@
+// Live demo runners — execute each engine against synthetic data
+// and return a presentable output. Used by the marketplace UI to show
+// real engine behavior without requiring the user to open a console.
+
+import {
+  EpisodicStore,
+  SemanticIndex,
+  ProceduralCache,
+  ConsolidationEngine,
+  ForgettingEngine,
+  MemoryRetriever,
+  MemoryEncoder,
+  MemoryDecoder,
+  MemoryHierarchy,
+  MemoryCoreIndex,
+} from '../engines/AgentMemoryCore';
+import {
+  LongTermMemoryManager,
+  ShortTermMemory,
+  WorkingMemory,
+  AssociativeMemory,
+  ContextWindow,
+  AttentionMechanism,
+  MemoryCompression,
+  MemoryCache,
+  MemoryProfiler,
+  MemoryAdvancedIndex,
+} from '../engines/AgentMemoryAdvanced';
+import {
+  MemoryDashboard,
+  MemoryConfig,
+  MemoryAudit,
+  MemoryProfile,
+  MemoryMigration,
+  MemoryReport,
+  MemoryBenchmark,
+  MemoryMasterIndex,
+  MemoryIntegrationIndex,
+} from '../engines/AgentMemoryIntegration';
+
+export interface DemoResult {
+  engineId: string;
+  title: string;
+  steps: string[];
+  output: string;
+  durationMs: number;
+}
+
+const measure = <T,>(fn: () => T): { result: T; ms: number } => {
+  const start = performance.now();
+  const result = fn();
+  return { result, ms: performance.now() - start };
+};
+
+// Advance values
+const ADVANCE: Record<string, boolean> = {
+  'MemoryDashboard': true, 'MemoryConfig': true, 'MemoryAudit': true, 'MemoryProfile': true,
+  'MemoryMigration': true, 'MemoryReport': true, 'MemoryBenchmark': true,
+  'MemoryCoreIndex': true, 'MemoryAdvancedIndex': true, 'MemoryMasterIndex': true, 'MemoryIntegrationIndex': true,
+};
+
+export const runDemo = (engineId: string): DemoResult => {
+  const useAdvanced = ADVANCE[engineId] && !['MemoryCoreIndex', 'MemoryAdvancedIndex', 'MemoryMasterIndex', 'MemoryIntegrationIndex'].includes(engineId);
+
+  switch (engineId) {
+    case 'EpisodicStore': {
+      const { result, ms } = measure(() => {
+        const s = new EpisodicStore();
+        s.record('user said hi', 0.7);
+        s.record('user asked about weather', 0.9);
+        s.record('user thanked', 0.4);
+        return {
+          recent: s.recent(3).map(e => `${e.content} (imp=${e.importance})`),
+          important: s.important(0.6).map(e => e.content),
+          total: s.size(),
+        };
+      });
+      return { engineId, title: 'EpisodicStore', steps: ['record 3 episodes', 'recent(3)', 'important(≥0.6)'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'SemanticIndex': {
+      const { result, ms } = measure(() => {
+        const s = new SemanticIndex();
+        s.add('m1', ['python', 'ai']).add('m2', ['python']).add('m3', ['rust']);
+        return {
+          python: s.findByTag('python'),
+          rust: s.findByTag('rust'),
+          tags: { m1: s.tags('m1'), m2: s.tags('m2') },
+          total: s.size(),
+        };
+      });
+      return { engineId, title: 'SemanticIndex', steps: ['add 3 entries with tags', 'findByTag × 2', 'tags() × 2'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'ProceduralCache': {
+      const { result, ms } = measure(() => {
+        const p = new ProceduralCache();
+        p.store('reset-pwd', ['verify email', 'send token', 'redirect to /reset']);
+        p.store('extract-text', ['open pdf', 'extract plain text']);
+        return {
+          resetPwd: p.get('reset-pwd'),
+          extract: p.get('extract-text'),
+          hasReset: p.has('reset-pwd'),
+          size: p.size(),
+        };
+      });
+      return { engineId, title: 'ProceduralCache', steps: ['store 2 procedures', 'get × 2'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'ConsolidationEngine': {
+      const { result, ms } = measure(() => {
+        const c = new ConsolidationEngine();
+        const items = [
+          { id: 'a', content: 'cat sat on the rug', timestamp: 1, importance: 0.5 },
+          { id: 'b', content: 'cat sat on the mat', timestamp: 2, importance: 0.6 },
+          { id: 'c', content: 'dog ran in the park', timestamp: 3, importance: 0.8 },
+        ];
+        return {
+          merged: c.consolidate(items).length,
+          mergeable: c.mergeable(items),
+          sample: c.consolidate(items)[0]?.content,
+        };
+      });
+      return { engineId, title: 'ConsolidationEngine', steps: ['3 similar episodes', 'consolidate'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'ForgettingEngine': {
+      const { result, ms } = measure(() => {
+        const f = new ForgettingEngine();
+        const old = { id: 'old', content: 'x', timestamp: Date.now() - 1_000_000, importance: 0.5 };
+        const fresh = { id: 'fresh', content: 'y', timestamp: Date.now(), importance: 0.5 };
+        return {
+          decay: f.relevance(old, 100_000),
+          forgetOld: f.shouldForget(old, 100_000, 0.01),
+          forgetFresh: f.shouldForget(fresh, 100_000, 0.01),
+        };
+      });
+      return { engineId, title: 'ForgettingEngine', steps: ['compute decay', 'shouldForget × 2'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryRetriever': {
+      const { result, ms } = measure(() => {
+        const r = new MemoryRetriever();
+        const items = [
+          { id: 'a', content: 'user likes sunny weather', timestamp: Date.now() - 100, importance: 0.8 },
+          { id: 'b', content: 'weather forecast was cloudy', timestamp: Date.now(), importance: 0.4 },
+          { id: 'c', content: 'user mentioned cat', timestamp: Date.now(), importance: 0.7 },
+        ];
+        const top = r.retrieve(items, 'weather', 2);
+        return {
+          query: 'weather',
+          topK: top.map(m => m.id),
+          scores: top.map(m => r.score(m, 'weather').toFixed(3)),
+        };
+      });
+      return { engineId, title: 'MemoryRetriever', steps: ['score 3 memories for query "weather"', 'retrieve top-2'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryEncoder': {
+      const { result, ms } = measure(() => {
+        const e = new MemoryEncoder();
+        const msg = 'hello world';
+        const enc = e.encode(msg);
+        return {
+          input: msg,
+          encoded: enc,
+          size: e.encodedSize(msg),
+        };
+      });
+      return { engineId, title: 'MemoryEncoder', steps: ['encode "hello world"'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryDecoder': {
+      const { result, ms } = measure(() => {
+        const d = new MemoryDecoder();
+        return {
+          reverse: d.reverse('mem:abc12345:hello world'),
+          split: d.split('alpha | beta | gamma'),
+        };
+      });
+      return { engineId, title: 'MemoryDecoder', steps: ['reverse + split'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryHierarchy': {
+      const { result, ms } = measure(() => {
+        const h = new MemoryHierarchy();
+        const now = Date.now();
+        const items = [
+          { id: 'h', content: 'x', timestamp: now, importance: 0.9 },
+          { id: 'w', content: 'y', timestamp: now - 100_000, importance: 0.5 },
+          { id: 'c', content: 'z', timestamp: now - 1_000_000, importance: 0.1 },
+        ];
+        return {
+          tiers: h.partition(items, now),
+        };
+      });
+      return { engineId, title: 'MemoryHierarchy', steps: ['classify 3 items by importance + age'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'LongTermMemoryManager': {
+      const { result, ms } = measure(() => {
+        const m = new LongTermMemoryManager();
+        m.store('theme', 'dark').store('locale', 'en-US').store('user-id', 'u_42');
+        return {
+          stored: m.list(),
+          age1ms: m.age('theme'),
+          value: m.get('user-id'),
+        };
+      });
+      return { engineId, title: 'LongTermMemoryManager', steps: ['store 3 keys', 'list + age + get'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'ShortTermMemory': {
+      const { result, ms } = measure(() => {
+        const s = new ShortTermMemory(3);
+        s.push('a').push('b').push('c').push('d');  // 'a' evicted
+        return {
+          rollingWindow: s.recent(),
+          size: s.size(),
+          capacity: s.capacity(),
+        };
+      });
+      return { engineId, title: 'ShortTermMemory', steps: ['push 4 with cap=3 (FIFO eviction)'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'WorkingMemory': {
+      const { result, ms } = measure(() => {
+        const w = new WorkingMemory();
+        w.focus('a', 'content-a', 0.9).focus('b', 'content-b', 0.3);
+        w.decay(0.5);
+        return {
+          focused: w.focusedIds(0.4),
+          afterDecay: { a: w.get('a')?.attention, b: w.get('b')?.attention },
+        };
+      });
+      return { engineId, title: 'WorkingMemory', steps: ['focus 2 items + decay(0.5)'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'AssociativeMemory': {
+      const { result, ms } = measure(() => {
+        const a = new AssociativeMemory();
+        a.link('ramen', 'japanese-food').link('ramen', 'cold-dishes').link('japanese-food', 'sushi');
+        return {
+          ramenNeighbors: a.neighbors('ramen'),
+          reachable: a.reachable('ramen', 2),
+          linkCount: a.linkCount(),
+        };
+      });
+      return { engineId, title: 'AssociativeMemory', steps: ['link 3 pairs (graph)', 'neighbors + BFS'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'ContextWindow': {
+      const { result, ms } = measure(() => {
+        const w = new ContextWindow(5);
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g'].forEach(c => w.add(c));
+        return {
+          contents: w.contents(),
+          size: w.size(),
+          remaining: w.remaining(),
+          isFull: w.isFull(),
+        };
+      });
+      return { engineId, title: 'ContextWindow', steps: ['add 7 tokens to cap-5'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'AttentionMechanism': {
+      const { result, ms } = measure(() => {
+        const a = new AttentionMechanism();
+        const w = a.attend([1, 0], [[1, 0], [0, 1], [0.5, 0.5]]);
+        return {
+          weights: w.map(x => x.toFixed(4)),
+          topK: a.topK(w, 2),
+        };
+      });
+      return { engineId, title: 'AttentionMechanism', steps: ['attend over 3 keys'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryCompression': {
+      const { result, ms } = measure(() => {
+        const c = new MemoryCompression();
+        const items = ['hello world', 'hello world', 'goodbye world', 'hello world'];
+        const compressed = c.compress(items);
+        return {
+          before: items.length,
+          after: compressed.length,
+          ratio: c.ratio(items, compressed).toFixed(3),
+          truncated: c.truncate(['long-message-here'], 5),
+        };
+      });
+      return { engineId, title: 'MemoryCompression', steps: ['dedup + truncate'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryCache': {
+      const { result, ms } = measure(() => {
+        const c = new MemoryCache(2);
+        c.set('a', 1).set('b', 2).set('c', 3);  // 'a' evicted
+        return {
+          hit_a: c.get('a'),
+          hit_b: c.get('b'),
+          hit_c: c.get('c'),
+          size: c.size(),
+        };
+      });
+      return { engineId, title: 'MemoryCache', steps: ['set 3 keys, cap=2 (LRU evict)'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryProfiler': {
+      const { result, ms } = measure(() => {
+        const p = new MemoryProfiler();
+        p.record('agent-1', 25, 1024).record('agent-1', 50, 2048);
+        return {
+          avgMs: p.averageDuration('agent-1'),
+          totalBytes: p.totalBytes('agent-1'),
+          ops: p.operations(),
+        };
+      });
+      return { engineId, title: 'MemoryProfiler', steps: ['record 2 ops for agent-1'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryDashboard': {
+      const { result, ms } = measure(() => {
+        const cls = useAdvanced ? MemoryDashboardInt : MemoryDashboard;
+        const d = new cls();
+        d.setPanel('ltm', 'LTM Size', 1024).setPanel('stm', 'STM Capacity', 10).setPanel('q', 'Queries/min', 50);
+        return {
+          panels: d.panelNames(),
+          count: d.panelCount(),
+          panel_ltm: d.getPanel('ltm'),
+        };
+      });
+      return { engineId, title: 'MemoryDashboard (integration)', steps: ['set 3 named panels'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryConfig': {
+      const { result, ms } = measure(() => {
+        const cls = useAdvanced ? MemoryConfigInt : MemoryConfig;
+        const c = new cls();
+        c.set('window', 4096).set('compression', 'gzip').set('debug', true);
+        return {
+          window: c.getNumber('window'),
+          compression: c.getString('compression'),
+          debug: c.getBoolean('debug'),
+          size: c.size(),
+        };
+      });
+      return { engineId, title: 'MemoryConfig (integration)', steps: ['set 3 typed configs'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryAudit': {
+      const { result, ms } = measure(() => {
+        const cls = useAdvanced ? MemoryAuditInt : MemoryAudit;
+        const a = new cls();
+        a.record('user-1', 'write', 'episodic').record('user-1', 'read', 'semantic').record('user-2', 'write', 'ltm');
+        return {
+          user1: a.forUser('user-1').length,
+          user2: a.forUser('user-2').length,
+          total: a.count(),
+        };
+      });
+      return { engineId, title: 'MemoryAudit (integration)', steps: ['record 3 audit entries'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryProfile': {
+      const { result, ms } = measure(() => {
+        const cls = useAdvanced ? MemoryProfileInt : MemoryProfile;
+        const p = new cls();
+        p.record('agent-7', 50, 100).record('agent-7', 200, 400);
+        return {
+          avgItems: p.averageItems('agent-7'),
+          avgMs: p.averageDuration('agent-7'),
+          totalOps: p.totalOps('agent-7'),
+        };
+      });
+      return { engineId, title: 'MemoryProfile (integration)', steps: ['record 2 sessions'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryMigration': {
+      const { result, ms } = measure(() => {
+        const cls = useAdvanced ? MemoryMigrationInt : MemoryMigration;
+        const m = new cls();
+        let n = 0;
+        m.define('v1', () => { n += 1; });
+        m.define('v2', async () => { n += 1; });
+        return {
+          pending1: m.migrationCount(),
+          afterRun: null as null | { v1: boolean; v2: boolean },
+          // run via promise chain
+        };
+      });
+      const cls = useAdvanced ? MemoryMigrationInt : MemoryMigration;
+      const m2 = new cls();
+      let n2 = 0;
+      m2.define('v1', () => { n2 += 1; });
+      return {
+        output: JSON.stringify({
+          runReturned: null,
+          beforeRun: result,
+        }, null, 2),
+        steps: ['define 1 migration', 'inspect (run via UI button)'],
+        engineId, title: 'MemoryMigration (integration)',
+        durationMs: ms,
+      };
+    }
+
+    case 'MemoryReport': {
+      const { result, ms } = measure(() => {
+        const cls = useAdvanced ? MemoryReportInt : MemoryReport;
+        const r = new cls();
+        const md = r.generate('Q1 Memory', { ltm: 1024, stm: 50, queries_per_min: 100 });
+        const csv = r.toCSV({ a: 1, b: 2 });
+        return { md: md.slice(0, 120) + '…', csv };
+      });
+      return { engineId, title: 'MemoryReport (integration)', steps: ['generate markdown + CSV'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryBenchmark': {
+      const { result, ms } = measure(() => {
+        const cls = useAdvanced ? MemoryBenchmarkInt : MemoryBenchmark;
+        const b = new cls();
+        b.record('episodic', 0.85).record('semantic', 0.95).record('procedural', 0.78);
+        return {
+          best: b.best(),
+          all: b.results(),
+        };
+      });
+      return { engineId, title: 'MemoryBenchmark (integration)', steps: ['compare 3 stores'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryCoreIndex': {
+      const { result, ms } = measure(() => {
+        const idx = new MemoryCoreIndex();
+        return { engines: idx.list(), count: idx.count() };
+      });
+      return { engineId, title: 'MemoryCoreIndex (batch 1/3 index)', steps: ['list + count'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryAdvancedIndex': {
+      const { result, ms } = measure(() => {
+        const idx = new MemoryAdvancedIndex();
+        return { engines: idx.list(), count: idx.count() };
+      });
+      return { engineId, title: 'MemoryAdvancedIndex (batch 2/3 index)', steps: ['list + count'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryMasterIndex': {
+      const { result, ms } = measure(() => {
+        const idx = new MemoryMasterIndex();
+        return {
+          engines: idx.list(),
+          count: idx.count(),
+          hasEpisodic: idx.has('EpisodicStore'),
+        };
+      });
+      return { engineId, title: 'MemoryMasterIndex (master across 3 batches)', steps: ['list + count + has'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemoryIntegrationIndex': {
+      const { result, ms } = measure(() => {
+        const idx = new MemoryIntegrationIndexInt();
+        return { engines: idx.list(), count: idx.count() };
+      });
+      return { engineId, title: 'MemoryIntegrationIndex (batch 3/3 index)', steps: ['list + count'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    default:
+      return { engineId, title: engineId, steps: [], output: 'No demo available', durationMs: 0 };
+  }
+};

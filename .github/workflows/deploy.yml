@@ -1,0 +1,54 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund --legacy-peer-deps || true
+
+      - name: Install vendored tools
+        run: |
+          ln -sf /home/hermes/projects/ai-novel-assistant/node_modules/vite node_modules/vite || true
+          ln -sf /home/hermes/projects/ai-novel-assistant/node_modules/vitest node_modules/vitest || true
+          ln -sf /home/hermes/projects/ai-novel-assistant/node_modules/esbuild node_modules/esbuild || true
+          ln -sf /home/hermes/projects/ai-novel-assistant/node_modules/.bin/vite node_modules/.bin/vite || true
+          ln -sf /home/hermes/projects/ai-novel-assistant/node_modules/.bin/vitest node_modules/.bin/vitest || true
+
+      - name: Run tests (gate)
+        run: npx vitest run
+
+      - name: Build
+        run: node build.mjs
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

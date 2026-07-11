@@ -1,0 +1,19 @@
+{
+  "name": "agent-memory-marketplace",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A curated marketplace registry for AI agent memory engines, similar to how agent-skills-marketplace indexes skills — discover, integrate, and benchmark memory layers for long-running agents.",
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "npx vite preview --port 4173",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.3"
+  },
+  "dependencies": {}
+}
