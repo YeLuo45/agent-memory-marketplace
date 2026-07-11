@@ -21,7 +21,7 @@ GitHub trending (2026-07-10) revealed the **agent memory** track:
 
 Existing solutions (Letta, Zep, MemGPT, Cognee) are powerful but fragmented. This marketplace fuses **28 distinct memory engines** into one discoverable registry with runnable live demos.
 
-## Engines (38 · 49 tests · 100% pass · 2200 LOC)
+## Engines (38 engines · 49 tests · 100% pass · 2200 LOC + 11 MCP engines)
 
 All engines are **pure TypeScript** with zero runtime dependencies — drop them into any backend (browser, Node, Bun, Deno, Workers). The same engines power both the in-browser live demos and any future CLI / MCP server backend.
 
@@ -80,9 +80,27 @@ All engines are **pure TypeScript** with zero runtime dependencies — drop them
 | `HybridSearcher` | memvector | Hybrid tag (Jaccard) + vector similarity with α tuning |
 | `VectorCache` | memvector | LRU cache for embeddings with hit-rate tracking |
 | `TokenBag` | memvector | TF-IDF vectorizer (alt to hash embedder) |
-| `VectorMigrator` | memvector | Migrate vectors between dims (model upgrade, pad/truncate, project) |
+| `VectorMigrator` | memvector | Migrate vectors between dims (model upgrade, pad/truncate) |
 | `VectorNormalizer` | memvector | L2 + minmax + z-score normalization |
 | `MemVectorCoreIndex` | memvector | Batch 4/4 index |
+
+### Batch 5/5 — MCP Plugin Standards (V5576-V5595) — 11 engines (NEW · 2026-07-11)
+
+Exposes the 38 memory engines as **Model Context Protocol (MCP) tools** for any MCP-compatible agent (Claude Code, Cursor, etc.) plus an **OpenMemory REST adapter** (Letta-compatible).
+
+| Engine | Layer | Purpose |
+|--------|-------|---------|
+| `MCPServer` | mcp | JSON-RPC 2.0 stdio server with 20 tools + 8 resources |
+| `MCPMasterIndex` | mcp | Index of all MCP-related engines |
+| `MCPRequestRouter` | mcp | Routes + logs requests through server |
+| `MCPErrorLogger` | mcp | Captures and reports failed requests |
+| `MCPHealthCheck` | mcp | Periodic ping for uptime + tool/resource counts |
+| `MCPLoadBalancer` | mcp | Round-robin distribution across server instances |
+| `OpenMemoryAdapter` | mcp | Letta-compatible REST adapter (POST /memories, GET /memories/:id, POST /search, etc.) |
+| `OpenMemoryRouter` | mcp | HTTP-style façade for OpenMemoryAdapter |
+| `OpenMemoryComplianceTest` | mcp | Tests 5 spec endpoints against adapter |
+| `AdapterHealth` | mcp | Polls adapter health (alive/uptime/records) |
+| `AdapterStats` | mcp | Tracks call counts + type breakdowns |
 
 ## UI Features
 
@@ -105,14 +123,26 @@ All engines are **pure TypeScript** with zero runtime dependencies — drop them
 ## Quick start
 
 ```bash
-# Run unit tests (38/38 in ~1s)
+# Run unit tests (61+ tests in ~1s)
 npx vitest run
 
 # Build production bundle (zero-dep runtime)
 npm run build  # → dist/
 
 # Preview production
-npx vite preview --port 4174
+npx vite preview --port 4173
+
+# CLI tool — interact with engines, MCP server, OpenMemory adapter
+node bin/amm.js list
+node bin/amm.js info HNSWIndex
+node bin/amm.js demo EpisodicStore
+node bin/amm.js mcp call tools/list
+node bin/amm.js openmem create user1 episodic "hello world" 0.8
+node bin/amm.js openmem search python 5
+node bin/amm.js compat
+
+# MCP server mode (stdio) — wire up to Claude Code MCP config
+node bin/amm.js mcp serve
 ```
 
 ## Architecture
