@@ -37,6 +37,19 @@ import {
   MemoryMasterIndex,
   MemoryIntegrationIndex,
 } from '../engines/AgentMemoryIntegration';
+import {
+  VectorEmbedder,
+  CosineSim,
+  DistanceMetric,
+  VectorNormalizer,
+  HNSWIndex,
+  PQCompressor,
+  HybridSearcher,
+  VectorCache,
+  TokenBag,
+  VectorMigrator,
+  MemVectorCoreIndex,
+} from '../engines/MemVectorCore';
 
 export interface DemoResult {
   engineId: string;
@@ -53,14 +66,8 @@ const measure = <T,>(fn: () => T): { result: T; ms: number } => {
 };
 
 // Advance values
-const ADVANCE: Record<string, boolean> = {
-  'MemoryDashboard': true, 'MemoryConfig': true, 'MemoryAudit': true, 'MemoryProfile': true,
-  'MemoryMigration': true, 'MemoryReport': true, 'MemoryBenchmark': true,
-  'MemoryCoreIndex': true, 'MemoryAdvancedIndex': true, 'MemoryMasterIndex': true, 'MemoryIntegrationIndex': true,
-};
-
 export const runDemo = (engineId: string): DemoResult => {
-  const useAdvanced = ADVANCE[engineId] && !['MemoryCoreIndex', 'MemoryAdvancedIndex', 'MemoryMasterIndex', 'MemoryIntegrationIndex'].includes(engineId);
+  const useAdvanced = false; // reserved for future use
 
   switch (engineId) {
     case 'EpisodicStore': {
@@ -319,8 +326,7 @@ export const runDemo = (engineId: string): DemoResult => {
 
     case 'MemoryDashboard': {
       const { result, ms } = measure(() => {
-        const cls = useAdvanced ? MemoryDashboardInt : MemoryDashboard;
-        const d = new cls();
+        const d = new MemoryDashboard();
         d.setPanel('ltm', 'LTM Size', 1024).setPanel('stm', 'STM Capacity', 10).setPanel('q', 'Queries/min', 50);
         return {
           panels: d.panelNames(),
@@ -333,8 +339,7 @@ export const runDemo = (engineId: string): DemoResult => {
 
     case 'MemoryConfig': {
       const { result, ms } = measure(() => {
-        const cls = useAdvanced ? MemoryConfigInt : MemoryConfig;
-        const c = new cls();
+        const c = new MemoryConfig();
         c.set('window', 4096).set('compression', 'gzip').set('debug', true);
         return {
           window: c.getNumber('window'),
@@ -348,12 +353,11 @@ export const runDemo = (engineId: string): DemoResult => {
 
     case 'MemoryAudit': {
       const { result, ms } = measure(() => {
-        const cls = useAdvanced ? MemoryAuditInt : MemoryAudit;
-        const a = new cls();
+        const a = new MemoryAudit();
         a.record('user-1', 'write', 'episodic').record('user-1', 'read', 'semantic').record('user-2', 'write', 'ltm');
         return {
-          user1: a.forUser('user-1').length,
-          user2: a.forUser('user-2').length,
+          user1: a.forAgent('user-1').length,
+          user2: a.forAgent('user-2').length,
           total: a.count(),
         };
       });
@@ -362,13 +366,12 @@ export const runDemo = (engineId: string): DemoResult => {
 
     case 'MemoryProfile': {
       const { result, ms } = measure(() => {
-        const cls = useAdvanced ? MemoryProfileInt : MemoryProfile;
-        const p = new cls();
+        const p = new MemoryProfile();
         p.record('agent-7', 50, 100).record('agent-7', 200, 400);
         return {
           avgItems: p.averageItems('agent-7'),
           avgMs: p.averageDuration('agent-7'),
-          totalOps: p.totalOps('agent-7'),
+          totalRecords: p.runs('agent-7').length,
         };
       });
       return { engineId, title: 'MemoryProfile (integration)', steps: ['record 2 sessions'], output: JSON.stringify(result, null, 2), durationMs: ms };
@@ -376,8 +379,7 @@ export const runDemo = (engineId: string): DemoResult => {
 
     case 'MemoryMigration': {
       const { result, ms } = measure(() => {
-        const cls = useAdvanced ? MemoryMigrationInt : MemoryMigration;
-        const m = new cls();
+        const m = new MemoryMigration();
         let n = 0;
         m.define('v1', () => { n += 1; });
         m.define('v2', async () => { n += 1; });
@@ -387,8 +389,7 @@ export const runDemo = (engineId: string): DemoResult => {
           // run via promise chain
         };
       });
-      const cls = useAdvanced ? MemoryMigrationInt : MemoryMigration;
-      const m2 = new cls();
+      const m2 = new MemoryMigration();
       let n2 = 0;
       m2.define('v1', () => { n2 += 1; });
       return {
@@ -404,8 +405,7 @@ export const runDemo = (engineId: string): DemoResult => {
 
     case 'MemoryReport': {
       const { result, ms } = measure(() => {
-        const cls = useAdvanced ? MemoryReportInt : MemoryReport;
-        const r = new cls();
+        const r = new MemoryReport();
         const md = r.generate('Q1 Memory', { ltm: 1024, stm: 50, queries_per_min: 100 });
         const csv = r.toCSV({ a: 1, b: 2 });
         return { md: md.slice(0, 120) + '…', csv };
@@ -415,8 +415,7 @@ export const runDemo = (engineId: string): DemoResult => {
 
     case 'MemoryBenchmark': {
       const { result, ms } = measure(() => {
-        const cls = useAdvanced ? MemoryBenchmarkInt : MemoryBenchmark;
-        const b = new cls();
+        const b = new MemoryBenchmark();
         b.record('episodic', 0.85).record('semantic', 0.95).record('procedural', 0.78);
         return {
           best: b.best(),
@@ -456,10 +455,181 @@ export const runDemo = (engineId: string): DemoResult => {
 
     case 'MemoryIntegrationIndex': {
       const { result, ms } = measure(() => {
-        const idx = new MemoryIntegrationIndexInt();
+        const idx = new MemoryIntegrationIndex();
         return { engines: idx.list(), count: idx.count() };
       });
       return { engineId, title: 'MemoryIntegrationIndex (batch 3/3 index)', steps: ['list + count'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    // ===== MemVector engines (V5556-V5575) =====
+    case 'VectorEmbedder': {
+      const { result, ms } = measure(() => {
+        const e = new VectorEmbedder(64);
+        const v = e.embedText('hello world');
+        const tags = e.embedTags(['python', 'ai']);
+        const proj = e.project(v.values, 32);
+        return {
+          text_dim: v.dim,
+          text_first_5: v.values.slice(0, 5).map(x => x.toFixed(4)),
+          tag_first_5: tags.values.slice(0, 5).map(x => x.toFixed(4)),
+          project_to_32: proj.length,
+        };
+      });
+      return { engineId, title: 'VectorEmbedder', steps: ['embed text + tags', 'project to 32-dim'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'CosineSim': {
+      const { result, ms } = measure(() => {
+        const c = new CosineSim();
+        return {
+          identity: c.similarity([1, 0, 0], [1, 0, 0]).toFixed(4),
+          ortho: c.similarity([1, 0], [0, 1]).toFixed(4),
+          opp: c.similarity([1, 0], [-1, 0]).toFixed(4),
+          l2: c.distance([1, 0], [4, 3]).toFixed(4),
+          top1: c.topK([1, 0], [[1, 0], [0.5, 0.5]], 1)[0],
+        };
+      });
+      return { engineId, title: 'CosineSim', steps: ['4 similarity checks + topK'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'DistanceMetric': {
+      const { result, ms } = measure(() => {
+        return {
+          cosine: DistanceMetric.cosine([1, 0], [0, 1]).toFixed(4),
+          euclidean: DistanceMetric.euclidean([1, 0], [4, 3]).toFixed(4),
+          dot: DistanceMetric.dot([1, 2, 3], [4, 5, 6]),
+        };
+      });
+      return { engineId, title: 'DistanceMetric', steps: ['cosine + euclidean + dot'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'HNSWIndex': {
+      const { result, ms } = measure(() => {
+        const idx = new HNSWIndex(8, 3);
+        idx.insert('a', [1, 0, 0]);
+        idx.insert('b', [1, 0, 0.1]);
+        idx.insert('c', [0, 1, 0]);
+        idx.insert('d', [0.5, 0.5, 0]);
+        const q = idx.query([1, 0, 0], 3);
+        return {
+          ids: idx.ids(),
+          top3: q.map(x => ({ id: x.id, score: x.score.toFixed(4) })),
+          avgDegree: idx.averageDegree().toFixed(2),
+        };
+      });
+      return { engineId, title: 'HNSWIndex', steps: ['insert 4 vectors', 'top-3 query'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'PQCompressor': {
+      const { result, ms } = measure(() => {
+        const c = new PQCompressor(4);
+        const v = Array.from({ length: 8 }, (_, i) => i / 8);
+        const codes = c.compress(v);
+        return {
+          original_dim: v.length,
+          codes_dim: codes.length,
+          codes: codes,
+          ratio: c.compressionRatio(8).toFixed(2),
+          approx: c.approxDistance([10, 20], [15, 25]),
+        };
+      });
+      return { engineId, title: 'PQCompressor', steps: ['compress 8-dim to 4 codes', 'approx distance'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'HybridSearcher': {
+      const { result, ms } = measure(() => {
+        const h = new HybridSearcher();
+        const items = [
+          { id: 'a', tags: ['python', 'ai'], vector: [1, 0, 0] },
+          { id: 'b', tags: ['python'], vector: [1, 0, 0.1] },
+          { id: 'c', tags: ['rust'], vector: [0, 1, 0] },
+        ];
+        const r0 = h.search('python', [1, 0, 0], items, { alpha: 0, limit: 3 });
+        const r1 = h.search('python', [1, 0, 0], items, { alpha: 1, limit: 3 });
+        const r05 = h.search('python', [1, 0, 0], items, { alpha: 0.5, limit: 3 });
+        const gt = new Set(['a', 'b']);
+        const best = h.tuneAlpha('python', [1, 0, 0], items, gt);
+        return {
+          alpha_0: r0.map(x => ({ id: x.id, combined: x.combined.toFixed(3) })),
+          alpha_1: r1.map(x => ({ id: x.id, combined: x.combined.toFixed(3) })),
+          alpha_05: r05.map(x => ({ id: x.id, combined: x.combined.toFixed(3) })),
+          best_alpha: best.toFixed(2),
+        };
+      });
+      return { engineId, title: 'HybridSearcher', steps: ['test α=0/0.5/1', 'grid search best α'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'VectorCache': {
+      const { result, ms } = measure(() => {
+        const c = new VectorCache(2);
+        c.set('k1', [0.1, 0.2, 0.3]);
+        c.set('k2', [0.4, 0.5, 0.6]);
+        c.get('k1'); c.get('k1'); c.get('k3'); c.get('k1');
+        c.set('k4', [0.7, 0.8, 0.9]); // evicts k2
+        return {
+          hit: c.hitRate().toFixed(2),
+          size: c.size(),
+          has_k1: c.has('k1'),
+          has_k2: c.has('k2'),
+          has_k4: c.has('k4'),
+        };
+      });
+      return { engineId, title: 'VectorCache', steps: ['cache + access + evict'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'TokenBag': {
+      const { result, ms } = measure(() => {
+        const t = new TokenBag();
+        t.fit(['the cat sat on the mat', 'the dog ran fast', 'python is great fun']);
+        const v = t.vectorize('the cat ran fast');
+        return {
+          vocab_size: t.vocabSize(),
+          vector_dim: v.dim,
+          tokenized: TokenBag.tokenize('Cat  DOG, Cat!'),
+        };
+      });
+      return { engineId, title: 'TokenBag', steps: ['fit on 3 docs', 'vectorize + tokenize'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'VectorMigrator': {
+      const { result, ms } = measure(() => {
+        const m = new VectorMigrator();
+        const padTrunc = m.migrate([[1, 2, 3, 4, 5, 6, 7, 8]], 8, 4, 'pad-truncate');
+        const proj = m.migrate([[1, 2, 3, 4]], 4, 8, 'random-projection');
+        const up = m.migrate([[1, 2]], 2, 5, 'pad-truncate');
+        return {
+          pad_truncate_8_to_4: padTrunc,
+          random_projection_4_to_8: proj,
+          pad_2_to_5: up,
+        };
+      });
+      return { engineId, title: 'VectorMigrator', steps: ['3 migration strategies'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'VectorNormalizer': {
+      const { result, ms } = measure(() => {
+        return {
+          l2: VectorNormalizer.normalize([3, 4]),
+          minmax: VectorNormalizer.minMax([1, 2, 3, 4, 5]),
+          zscore: VectorNormalizer.zScore([1, 2, 3]),
+          constant: VectorNormalizer.zScore([5, 5, 5]),
+        };
+      });
+      return { engineId, title: 'VectorNormalizer', steps: ['L2 + minmax + zscore'], output: JSON.stringify(result, null, 2), durationMs: ms };
+    }
+
+    case 'MemVectorCoreIndex': {
+      const { result, ms } = measure(() => {
+        const idx = new MemVectorCoreIndex();
+        return {
+          count: idx.count(),
+          has_VectorEmbedder: idx.has('VectorEmbedder'),
+          has_HNSWIndex: idx.has('HNSWIndex'),
+          has_MemVectorCoreIndex: idx.has('MemVectorCoreIndex'),
+          has_Missing: idx.has('Missing'),
+        };
+      });
+      return { engineId, title: 'MemVectorCoreIndex', steps: ['batch index metadata'], output: JSON.stringify(result, null, 2), durationMs: ms };
     }
 
     default:

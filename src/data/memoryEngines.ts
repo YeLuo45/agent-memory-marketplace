@@ -373,6 +373,87 @@ new MemoryMasterIndex().has('EpisodicStore');  // true`,
     ratingSum: 30,
     ratingCount: 7,
   },
+  {
+    id: 'VectorEmbedder',
+    name: 'VectorEmbedder',
+    layer: 'memvector',
+    description: 'Deterministic pseudo-random embedding (text → vector + project).',
+    useCase: 'Convert text/tag inputs to fixed-dimension vectors for similarity search.',
+    codePreview: `const e = new VectorEmbedder(64);
+const v = e.embedText('hello world');  // { dim: 64, values: [0.012, -0.034, ...] }
+e.project(v.values, 32);  // projection to 32 dims`,
+    pulled: 4200,
+    ratingSum: 26,
+    ratingCount: 6,
+  },
+  {
+    id: 'HNSWIndex',
+    name: 'HNSWIndex',
+    layer: 'memvector',
+    description: 'Simplified HNSW-style graph: K-NN inserts + beam query with cosine similarity.',
+    useCase: 'Build a scalable ANN index over memory embeddings for fast top-K retrieval.',
+    codePreview: `const idx = new HNSWIndex(16, 3);
+idx.insert('a', [1, 0, 0]); idx.insert('b', [1, 0, 0.1]);
+idx.query([1, 0, 0], 2);  // returns [{id: 'a', score: 1.0}, {id: 'b', score: 0.99}]`,
+    pulled: 7800,
+    ratingSum: 47,
+    ratingCount: 11,
+  },
+  {
+    id: 'PQCompressor',
+    name: 'PQCompressor',
+    layer: 'memvector',
+    description: 'Product Quantization: split vector into K sub-vectors, store centroid id (1 byte each).',
+    useCase: 'Compress memory embeddings to 1/8 size with ~90% recall retention for ANN search.',
+    codePreview: `const c = new PQCompressor(4);  // 4 sub-vectors
+const v = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8];
+const codes = c.compress(v);  // [byte, byte, byte, byte]
+c.compressionRatio(8);  // 0.5`,
+    pulled: 3200,
+    ratingSum: 19,
+    ratingCount: 5,
+  },
+  {
+    id: 'HybridSearcher',
+    name: 'HybridSearcher',
+    layer: 'memvector',
+    description: 'Combine tag-match (Jaccard) + vector similarity with tunable α.',
+    useCase: 'Get the best of both worlds: combine tag-based metadata search with semantic vector similarity.',
+    codePreview: `const h = new HybridSearcher();
+h.search('python', [1, 0, 0], items, { alpha: 0.5 });
+// alpha=1 → pure tag, alpha=0 → pure vector
+h.tuneAlpha(...);  // grid-search best α over ground-truth hits`,
+    pulled: 5400,
+    ratingSum: 33,
+    ratingCount: 7,
+  },
+  {
+    id: 'VectorCache',
+    name: 'VectorCache',
+    layer: 'memvector',
+    description: 'LRU cache for query/embedding key-value lookups with hit-rate tracking.',
+    useCase: 'Skip recomputing embeddings for repeated queries. Track cache hit-rate to tune policy.',
+    codePreview: `const c = new VectorCache(256);
+c.set('python-query', [embed1, embed2, ...]);
+c.get('python-query');  // hit
+c.hitRate();  // 0.94`,
+    pulled: 4100,
+    ratingSum: 25,
+    ratingCount: 6,
+  },
+  {
+    id: 'VectorMigrator',
+    name: 'VectorMigrator',
+    layer: 'memvector',
+    description: 'Migrate vectors between embedding dimensions (model upgrades, PCA, project).',
+    useCase: 'Upgrade from a 64-dim model to 128-dim without recomputing every embedding.',
+    codePreview: `const m = new VectorMigrator();
+m.migrate([[1, 2, 3, 4]], 4, 8, 'random-projection');
+m.migrate([[1, 2]], 2, 5, 'pad-truncate');  // → [[1, 2, 0, 0, 0]]`,
+    pulled: 2300,
+    ratingSum: 14,
+    ratingCount: 4,
+  },
 ];
 
 export const LAYERS = [
@@ -386,4 +467,5 @@ export const LAYERS = [
   { id: 'associative', label: 'Associative', color: '#a04f1a', desc: 'Graph-based link recall' },
   { id: 'compressor', label: 'Compressor', color: '#7c2d12', desc: 'Compression & ratio' },
   { id: 'integration', label: 'Integration', color: '#5e81ac', desc: 'Dashboard, audit, profiling' },
+  { id: 'memvector', label: 'MemVector', color: '#d946ef', desc: 'ANN + hybrid vector search' },
 ] as const;
