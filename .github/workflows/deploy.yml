@@ -21,14 +21,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund --legacy-peer-deps || true
+      - name: Install dependencies (lock only)
+        run: npm install --no-audit --no-fund --legacy-peer-deps --package-lock-only
 
       - name: Install vendored tools
         run: |
+          mkdir -p node_modules/.bin
           ln -sf /home/hermes/projects/ai-novel-assistant/node_modules/vite node_modules/vite || true
           ln -sf /home/hermes/projects/ai-novel-assistant/node_modules/vitest node_modules/vitest || true
           ln -sf /home/hermes/projects/ai-novel-assistant/node_modules/esbuild node_modules/esbuild || true
