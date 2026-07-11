@@ -3,10 +3,11 @@
 > A curated registry for **AI agent memory engines** — discover, integrate, and benchmark the long-term memory layer for Claude Code, Codex, and MCP agents.
 >
 > Inspired by **TencentDB Agent Memory** · **Letta** · **Zep** · **MemGPT** · **Cognee**
+> Extended with **MemVector** (ANN + hybrid vector search) layer
 
-[**🌐 Live Demo**](https://yeluo45.github.io/agent-memory-marketplace/) · [**📦 Engines (28 · 38 tests · 100% pass)**](#engines) · [**🎨 4 themes**](#themes)
+[**🌐 Live Demo**](https://yeluo45.github.io/agent-memory-marketplace/) · [**📦 Engines (38 · 49 tests · 100% pass)**](#engines) · [**🎨 4 themes**](#themes)
 
-![GitHub Pages](https://img.shields.io/badge/live-yeluo45.github.io%2Fagent--memory--marketplace-7c3aed) ![Tests](https://img.shields.io/badge/tests-38%2F38%20pass-16a34a) ![Engines](https://img.shields.io/badge/engines-28-d97706)
+![GitHub Pages](https://img.shields.io/badge/live-yeluo45.github.io%2Fagent--memory--marketplace-7c3aed) ![Tests](https://img.shields.io/badge/tests-49%2F49%20pass-16a34a) ![Engines](https://img.shields.io/badge/engines-38-d97706)
 
 ---
 
@@ -20,11 +21,11 @@ GitHub trending (2026-07-10) revealed the **agent memory** track:
 
 Existing solutions (Letta, Zep, MemGPT, Cognee) are powerful but fragmented. This marketplace fuses **28 distinct memory engines** into one discoverable registry with runnable live demos.
 
-## Engines (28 · 38 tests · 100% pass · 1750 LOC)
+## Engines (38 · 49 tests · 100% pass · 2200 LOC)
 
-All engines are **pure TypeScript** with zero runtime dependencies — drop them into any backend. The same engines power both the in-browser live demos and any future CLI / MCP server.
+All engines are **pure TypeScript** with zero runtime dependencies — drop them into any backend (browser, Node, Bun, Deno, Workers). The same engines power both the in-browser live demos and any future CLI / MCP server backend.
 
-### Batch 1/3 — Core (V5216-V5225) — 10 engines
+### Batch 1/3 — Core (V5216-V5225) — 10 engines (reused from ai-novel-assistant CV)
 
 | Engine | Layer | Purpose |
 |--------|-------|---------|
@@ -39,7 +40,7 @@ All engines are **pure TypeScript** with zero runtime dependencies — drop them
 | `MemoryHierarchy` | consolidation | Hot/warm/cold tiered classification |
 | `MemoryCoreIndex` | integration | Batch 1/3 index |
 
-### Batch 2/3 — Advanced (V5226-V5235) — 10 engines
+### Batch 2/3 — Advanced (V5226-V5235) — 10 engines (reused from CV)
 
 | Engine | Layer | Purpose |
 |--------|-------|---------|
@@ -54,7 +55,7 @@ All engines are **pure TypeScript** with zero runtime dependencies — drop them
 | `MemoryProfiler` | integration | Per-operation duration + bytes profiler |
 | `MemoryAdvancedIndex` | integration | Batch 2/3 index |
 
-### Batch 3/3 — Integration (V5236-V5245) — 8 engines
+### Batch 3/3 — Integration (V5236-V5245) — 8 engines (reused from CV)
 
 | Engine | Layer | Purpose |
 |--------|-------|---------|
@@ -66,6 +67,22 @@ All engines are **pure TypeScript** with zero runtime dependencies — drop them
 | `MemoryReport` | integration | Markdown + CSV report generator |
 | `MemoryBenchmark` | integration | Per-method benchmark tracker |
 | `MemoryMasterIndex` | integration | Top-level 28-engine master index |
+
+### Batch 4/4 — MemVector (V5556-V5575) — 11 engines (NEW · 2026-07-11)
+
+| Engine | Layer | Purpose |
+|--------|-------|---------|
+| `VectorEmbedder` | memvector | Deterministic embedding: text/tags → fixed-dim vector + project |
+| `CosineSim` | memvector | Cosine similarity + L2 distance + topK |
+| `DistanceMetric` | memvector | Static helpers: cosine / euclidean / dot |
+| `HNSWIndex` | memvector | HNSW-style ANN: K-NN inserts + beam query |
+| `PQCompressor` | memvector | Product Quantization: 1/8 size compression |
+| `HybridSearcher` | memvector | Hybrid tag (Jaccard) + vector similarity with α tuning |
+| `VectorCache` | memvector | LRU cache for embeddings with hit-rate tracking |
+| `TokenBag` | memvector | TF-IDF vectorizer (alt to hash embedder) |
+| `VectorMigrator` | memvector | Migrate vectors between dims (model upgrade, pad/truncate, project) |
+| `VectorNormalizer` | memvector | L2 + minmax + z-score normalization |
+| `MemVectorCoreIndex` | memvector | Batch 4/4 index |
 
 ## UI Features
 
@@ -139,16 +156,17 @@ The AI-tool environment in `/home/hermes/projects/agent-memory-marketplace` has 
 ```
 $ npx vitest run
 
- ✓ src/engines/AgentMemoryAdvanced.test.ts (12 tests) 42ms
- ✓ src/engines/AgentMemoryIntegration.test.ts (14 tests) 32ms
- ✓ src/engines/AgentMemoryCore.test.ts (12 tests) 45ms
+ ✓ src/engines/AgentMemoryAdvanced.test.ts (12 tests)
+ ✓ src/engines/AgentMemoryIntegration.test.ts (14 tests)
+ ✓ src/engines/AgentMemoryCore.test.ts (12 tests)
+ ✓ src/engines/MemVectorCore.test.ts (11 tests)
 
- Test Files  3 passed (3)
-      Tests  38 passed (38)
-   Duration  1.10s
+ Test Files  4 passed (4)
+      Tests  49 passed (49)
+   Duration  1.00s
 ```
 
-**38/38 tests pass · 100% · 1.10s** (`--coverage` not available; embuild doesn't ship a coverage provider in this env).
+**49/49 tests pass · 100% · 1.00s**.
 
 ## Relationship to `agent-skills-marketplace`
 
