@@ -25,7 +25,7 @@
 import { runDemo } from '../src/data/liveDemos';
 import { MEMORY_ENGINES, LAYERS } from '../src/data/memoryEngines';
 import { MCPServer } from '../src/mcp/MCPServer';
-import { OpenMemoryAdapter } from '../src/mcp/OpenMemoryAdapter';
+import { OpenMemoryAdapter, OpenMemoryComplianceTest } from '../src/mcp/OpenMemoryAdapter';
 
 const BOLD = '\x1b[1m';
 const CYAN = '\x1b[36m';
@@ -282,15 +282,12 @@ const cmdOpenMem = (args: string[]): void => {
 };
 
 const cmdCompat = (): void => {
-  // Import lazily to avoid running the test in production
-  import('./OpenMemoryAdapter').then((m) => {
-    const t = new m.OpenMemoryComplianceTest();
-    const r = t.runAll();
-    console.log(colorize(`\nOpenMemory compliance: ${r.pass}/${r.results.length} pass`, BOLD + (r.fail === 0 ? GREEN : RED)));
-    for (const x of r.results) {
-      console.log(`  ${colorize(x.ok ? '✓' : '✗', x.ok ? GREEN : RED)} ${x.name}`);
-    }
-  });
+  const t = new OpenMemoryComplianceTest();
+  const r = t.runAll();
+  console.log(colorize(`\nOpenMemory compliance: ${r.pass}/${r.results.length} pass`, BOLD + (r.fail === 0 ? GREEN : RED)));
+  for (const x of r.results) {
+    console.log(`  ${colorize(x.ok ? '✓' : '✗', x.ok ? GREEN : RED)} ${x.name}`);
+  }
 };
 
 const cmdHealth = (): void => {
