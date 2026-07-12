@@ -189,7 +189,9 @@ describe('MemoryMigrator', () => {
     const m = new MemoryMigrator();
     const r = await m.migrateFromJSON('{bad', 'letta');
     expect(r.ok).toBe(false);
-    expect(r.failed).toBe(1);
+    expect(r.imported).toBe(0);
+    expect(r.failed).toBe(0);
+    expect(r.errors.length).toBeGreaterThan(0);
   });
 
   it('sourceLabel returns current source', () => {
