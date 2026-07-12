@@ -1,11 +1,10 @@
 import { h, render, type VNode } from './runtime';
 import { MEMORY_ENGINES, LAYERS, type EngineMeta } from './data/memoryEngines';
 import { runDemo, type DemoResult } from './data/liveDemos';
-import { t, LAYER_LABELS, LAYER_DESCS, type Locale } from './data/i18n';
+import { t, LAYER_LABELS, LAYER_DESCS, LOCALES, type Locale } from './data/i18n';
 
 const THEMES = ['light', 'dark', 'sepia', 'nord'] as const;
 type Theme = typeof THEMES[number];
-const LOCALES: Locale[] = ['en', 'zh'];
 
 const STORAGE_KEYS = {
   theme: 'amm:theme',
@@ -58,9 +57,22 @@ const setState = (patch: Partial<State>): void => {
   if (rootEl) render(rootEl, App());
 };
 
-const pickI18n = <T,>(en: T | null | undefined, zh: T | null | undefined): T | null => {
-  if (state.locale === 'zh') return zh ?? en ?? null;
-  return en ?? zh ?? null;
+// V10: 4-tier locale fallback for engine metadata fields. Returns the value in the
+// current locale if present, otherwise falls back through nearby locales then en.
+const pickI18n = <T,>(en: T, zh?: T | null, ja?: T | null, ko?: T | null): T => {
+  if (state.locale === 'ja') return (ja ?? ko ?? zh ?? en) as T;
+  if (state.locale === 'ko') return (ko ?? ja ?? zh ?? en) as T;
+  if (state.locale === 'zh') return (zh ?? ja ?? ko ?? en) as T;
+  return en;
+};
+
+// Like pickI18n but accepts `field` (engine-meta locale variant suffix) and looks up
+// the right field. Used when wiring App.ts UI to render the localized name/description.
+const pickMeta = (e: EngineMeta, field: 'name' | 'description' | 'useCase'): string => {
+  if (state.locale === 'ja') return e[`${field}Ja` as const] ?? e[`${field}Ko` as const] ?? e[`${field}Zh` as const] ?? e[field];
+  if (state.locale === 'ko') return e[`${field}Ko` as const] ?? e[`${field}Ja` as const] ?? e[`${field}Zh` as const] ?? e[field];
+  if (state.locale === 'zh') return e[`${field}Zh` as const] ?? e[`${field}Ja` as const] ?? e[`${field}Ko` as const] ?? e[field];
+  return e[field];
 };
 
 const filterEngines = (): EngineMeta[] => {

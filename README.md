@@ -4,6 +4,7 @@
 >
 > Inspired by **TencentDB Agent Memory** · **Letta** · **Zep** · **MemGPT** · **Cognee**
 > Extended with **MemVector** (ANN + hybrid vector search) layer
+> Localized in **EN · 中文 · 日本語 · 한국어** (V10)
 
 [**🌐 Live Demo**](https://yeluo45.github.io/agent-memory-marketplace/) · [**📦 Engines (38 · 49 tests · 100% pass)**](#engines) · [**🎨 4 themes**](#themes)
 
@@ -217,6 +218,12 @@ node bin/amm.js federated share team-a "shared insight"
 node bin/amm.js federated audit 5
 node bin/amm.js compat
 
+# Build production bundle (zero-dep runtime, 4 locales)
+npm run build  # → dist/
+
+# Preview production — switch locale via header EN / 中文 / 日本語 / 한국어
+npx vite preview --port 4173
+
 # MCP server mode (stdio) — wire up to Claude Code MCP config
 node bin/amm.js mcp serve
 ```
@@ -353,14 +360,15 @@ $ npx vitest run
  ✓ src/streaming/StreamingCore.test.ts (35 tests)
  ✓ src/playback/PlaybackCore.test.ts (39 tests)
  ✓ src/federated/FederatedCore.test.ts (45 tests)
+ ✓ src/data/i18n.test.ts (34 tests)        ← V10: 4-locale extended
  ✓ src/mcp/MCPServer.test.ts (23 tests)
 
  Test Files  12 passed (12)
-      Tests  326 passed (326)
-   Duration  ~1.5s
+      Tests  348 passed (348)
+   Duration  ~3s
 ```
 
-**326/326 tests pass · 100% · ~1.5s**.
+**348/348 tests pass · 100% · ~3s**.
 
 ## Relationship to `agent-skills-marketplace`
 
@@ -370,11 +378,12 @@ This project is a **sister** to [`agent-skills-marketplace`](https://yeluo45.git
 Skills (what an agent KNOWS)        Memory (what an agent REMEMBERS)
 ─────────────────────────────────  ─────────────────────────────────
 agent-skills-marketplace           agent-memory-marketplace  ← you are here
-  11 engines · 11 tests              98 engines · 326 tests
+  11 engines · 11 tests              98 engines · 348 tests
   "Web Search", "Code Review",       "EpisodicStore", "ForgettingEngine",
    "TencentDB Memory"                 "MemoryHierarchy", "EventBus",
                                      "MemorySnapshotter", "SecureChannel", ...
-                                     MCP: 46 tools (federated + playback + streaming)
+                                     MCP: 46 tools
+                                     Locale: 4 (en · zh · ja · ko)
 ```
 
 They share the same React-free theme system, layout patterns, GitHub Actions → Pages pipeline. Skills get installed and produce memory events; memory keeps them consistent across sessions.
