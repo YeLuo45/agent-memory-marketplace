@@ -13,6 +13,7 @@ import { EpisodicStore, SemanticIndex, ProceduralCache, ConsolidationEngine, For
 import { LongTermMemoryManager, ShortTermMemory, WorkingMemory, AssociativeMemory, ContextWindow, AttentionMechanism, MemoryCompression, MemoryCache, MemoryProfiler, MemoryAdvancedIndex } from '../engines/AgentMemoryAdvanced';
 import { MemoryDashboard, MemoryConfig, MemoryAudit, MemoryProfile, MemoryMigration, MemoryReport, MemoryBenchmark, MemoryMasterIndex, MemoryIntegrationIndex } from '../engines/AgentMemoryIntegration';
 import { VectorEmbedder, CosineSim, DistanceMetric, VectorNormalizer, HNSWIndex, PQCompressor, HybridSearcher, VectorCache, TokenBag, VectorMigrator, MemVectorCoreIndex } from '../engines/MemVectorCore';
+import { LettaImportParser, LettaExporter, MemoryMigrator, FormatConverter, MigrationDiffEngine, MIGRATION_TOOLS } from '../migration/MigrationEngine';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -79,6 +80,7 @@ export class MCPServer {
 
   private _registerTools(): void {
     this._tools = [
+      ...MIGRATION_TOOLS,
       {
         name: 'EpisodicStore.record',
         description: 'Append-only timestamped episode ledger with importance scoring.',
@@ -418,6 +420,53 @@ export class MCPServer {
         case 'MemoryReport.generate': {
           const md = report.generate(String(args.title), { ltm: 1024, stm: 50 });
           return { content: [{ type: 'text', text: JSON.stringify({ report: md.slice(0, 200) }) }] };
+        }
+
+        case 'Letta.import': {
+          const parser = new LettaImportParser();
+          const r = parser.parse(String(args.json));
+          return { content: [{ type: 'text', text: JSON.stringify(r) }] };
+        }
+
+        case 'Letta.export': {
+          const exporter = new LettaExporter();
+          const json = String(args.json ?? '[]');
+          try {
+            const data = JSON.parse(json);
+            if (Array.isArray(data)) exporter.addAll(data);
+            else if (data.records && Array.isArray(data.records)) exporter.addAll(data.records);
+            else if (Array.isArray(data.data)) exporter.addAll(data.data);
+          } catch { /* ignore */ }
+          return { content: [{ type: 'text', text: exporter.toLettaJSON() }] };
+        }
+
+        case 'Migration.diff': {
+          const d = new MigrationDiffEngine();
+          let before = []; let after = [];
+          try { before = JSON.parse(String(args.before)); } catch { /* ignore */ }
+          try { after = JSON.parse(String(args.after)); } catch { /* ignore */ }
+          const diff = d.diff(before, after);
+          return { content: [{ type: 'text', text: JSON.stringify(diff) }] };
+        }
+
+        case 'Migration.validate': {
+          try {
+            const data = JSON.parse(String(args.json));
+            const records = Array.isArray(data) ? data : (data.records ?? data.data ?? []);
+            // Simple validation: required fields check
+            const issues = records
+              .map((r: { id?: string; agent_id?: string; content?: string }, i: number) => {
+                const missing = [];
+                if (!r.id) missing.push('id');
+                if (!r.agent_id) missing.push('agent_id');
+                if (!r.content) missing.push('content');
+                return { index: i, missing };
+              })
+              .filter((r: { missing: string[] }) => r.missing.length > 0);
+            return { content: [{ type: 'text', text: JSON.stringify({ valid: records.length - issues.length, issues }) }] };
+          } catch (err) {
+            return { content: [{ type: 'text', text: JSON.stringify({ error: String(err) }) }] };
+          }
         }
 
         default:
