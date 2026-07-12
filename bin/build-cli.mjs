@@ -14,7 +14,6 @@ async function main() {
     outfile: 'bin/amm.mjs',
     sourcemap: false,
     minify: false,
-    banner: { js: '#!/usr/bin/env node' },
   });
   if (existsSync('bin/amm.mjs')) {
     chmodSync('bin/amm.mjs', 0o755);

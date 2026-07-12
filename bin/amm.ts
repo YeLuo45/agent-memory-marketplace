@@ -18,6 +18,10 @@
 //   openmem search <query> [limit]      Search memories
 //   openmem stats                       Stats by type
 //   openmem health                      Health check
+//   streaming list                      List streaming engines
+//   streaming demo                      Run streaming demo (bus → watcher → producer → consumer)
+//   streaming produce <topic> <kind>    Emit one event
+//   streaming drain                     Drain a producer, print events
 //   compat                              Run OpenMemory compliance test
 //   health                              MCP server health check
 //   locales                             Show available locales
@@ -26,6 +30,7 @@ import { runDemo } from '../src/data/liveDemos';
 import { MEMORY_ENGINES, LAYERS } from '../src/data/memoryEngines';
 import { MCPServer } from '../src/mcp/MCPServer';
 import { OpenMemoryAdapter, OpenMemoryComplianceTest } from '../src/mcp/OpenMemoryAdapter';
+import { EventBus, MemoryWatcher, StreamProducer, StreamConsumer, StreamingMasterIndex } from '../src/streaming/StreamingCore';
 
 const BOLD = '\x1b[1m';
 const CYAN = '\x1b[36m';
@@ -65,6 +70,9 @@ const main = (): void => {
       case 'compat':
         cmdCompat();
         break;
+      case 'streaming':
+        cmdStreaming(rest);
+        break;
       case 'health':
         cmdHealth();
         break;
@@ -102,6 +110,10 @@ ${colorize('Commands:', BOLD)}
   ${colorize('openmem search', GREEN)} <query> [limit]
   ${colorize('openmem stats', GREEN)}                      Stats by type
   ${colorize('openmem health', GREEN)}                     Adapter health check
+  ${colorize('streaming list', GREEN)}                      List streaming engines
+  ${colorize('streaming demo', GREEN)}                     Run streaming demo
+  ${colorize('streaming produce', GREEN)} <topic> <kind>    Emit one event
+  ${colorize('streaming drain', GREEN)}                     Drain queued events
   ${colorize('compat', GREEN)}                              OpenMemory compliance test
   ${colorize('health', GREEN)}                              MCP server health
   ${colorize('locales', GREEN)}                             Available locales
@@ -113,6 +125,9 @@ ${colorize('Examples:', BOLD)}
   ${colorize('$ amm.js mcp call tools/list', DIM)}
   ${colorize('$ amm.js openmem create user1 episodic "user said hi" 0.8', DIM)}
   ${colorize('$ amm.js openmem search python 5', DIM)}
+  ${colorize('$ amm.js streaming demo', DIM)}
+  ${colorize('$ amm.js streaming produce memory.create create', DIM)}
+  ${colorize('$ amm.js streaming drain', DIM)}
 `);
 };
 
@@ -299,6 +314,64 @@ const cmdLocales = (): void => {
   console.log(colorize('\nAvailable locales:', BOLD));
   console.log('  • en  English');
   console.log('  • zh  简体中文');
+};
+
+const cmdStreaming = (args: string[]): void => {
+  const sub = args[0];
+  if (!sub) {
+    console.error(colorize('Usage: streaming <list|demo|produce|drain>', RED));
+    process.exit(1);
+  }
+  const idx = new StreamingMasterIndex();
+  switch (sub) {
+    case 'list': {
+      console.log(colorize(`\nStreaming engines (${idx.count()}):`, BOLD));
+      for (const item of idx.list()) {
+        console.log(`  ${colorize(item.name.padEnd(28), CYAN)} ${colorize('• ' + item.layer, DIM)}  ${item.version}`);
+      }
+      return;
+    }
+    case 'demo': {
+      const bus = new EventBus();
+      const producer = new StreamProducer();
+      const consumer = new StreamConsumer();
+      let busReceived = 0;
+      bus.subscribe('demo', () => (busReceived += 1));
+      consumer.bind(producer);
+      producer.emit('demo', 'create', { agentId: 'a1', source: 'cli' });
+      producer.emit('demo', 'update', { agentId: 'a1', source: 'cli' });
+      bus.publish({ topic: 'demo', kind: 'create', ts: Date.now(), payload: { x: 1 } });
+      producer.flush();
+      console.log(colorize('\nStreaming demo:', BOLD));
+      console.log(`  bus received       : ${busReceived}`);
+      console.log(`  consumer received  : ${consumer.summary().received}`);
+      console.log(`  consumer topics   : ${consumer.summary().topics}`);
+      console.log(`  producer metrics   : ${JSON.stringify(producer.metrics())}`);
+      return;
+    }
+    case 'produce': {
+      const [, topic, kind] = args;
+      if (!topic || !kind) {
+        console.error(colorize('Usage: streaming produce <topic> <kind>', RED));
+        process.exit(1);
+      }
+      const producer = new StreamProducer();
+      const r = producer.emit(topic, kind as 'create' | 'update' | 'delete' | 'access' | 'metric', { source: 'cli' });
+      console.log(JSON.stringify(r, null, 2));
+      return;
+    }
+    case 'drain': {
+      const producer = new StreamProducer();
+      producer.emit('a', 'create', {});
+      producer.emit('a', 'update', {});
+      const drained = producer.drain(10);
+      console.log(JSON.stringify(drained, null, 2));
+      return;
+    }
+    default:
+      console.error(colorize(`Unknown streaming subcommand: ${sub}`, RED));
+      process.exit(1);
+  }
 };
 
 main();

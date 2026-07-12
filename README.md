@@ -102,6 +102,25 @@ Exposes the 38 memory engines as **Model Context Protocol (MCP) tools** for any 
 | `AdapterHealth` | mcp | Polls adapter health (alive/uptime/records) |
 | `AdapterStats` | mcp | Tracks call counts + type breakdowns |
 
+### Batch 8/8 — Memory Streaming (V5626-V5640) — 5 engines (NEW · 2026-07-12)
+
+| Engine | Layer | Purpose |
+|--------|-------|---------|
+| `EventBus` | streaming | Generic pub/sub for memory events with topic + global listeners |
+| `MemoryWatcher` | streaming | Watches a memory store and emits change events on mutations |
+| `StreamProducer` | streaming | Bounded event queue with backpressure + drop-on-overflow + consumer fan-out |
+| `StreamConsumer` | streaming | Subscribes to a producer and aggregates events by topic + kind |
+| `StreamingMasterIndex` | streaming | Batch 8/8 index |
+
+### 4 new MCP tools (Streaming.* — 32 → 36 total)
+
+```
+EventBus.subscribe      — Subscribe to a topic
+StreamProducer.emit     — Emit a memory event
+StreamProducer.flush    — Drain queued events to consumers
+StreamConsumer.aggregate — Aggregate consumed events by topic
+```
+
 ## UI Features
 
 - **🔍 Search** — by name, description, or use case (live filter)
@@ -139,11 +158,40 @@ node bin/amm.js demo EpisodicStore
 node bin/amm.js mcp call tools/list
 node bin/amm.js openmem create user1 episodic "hello world" 0.8
 node bin/amm.js openmem search python 5
+node bin/amm.js streaming list
+node bin/amm.js streaming demo
+node bin/amm.js streaming produce memory.create create
+node bin/amm.js streaming drain
 node bin/amm.js compat
 
 # MCP server mode (stdio) — wire up to Claude Code MCP config
 node bin/amm.js mcp serve
 ```
+
+## Memory Streaming (V5626+)
+
+Real-time event-driven memory updates — wire up live change notifications on top of the existing memory stores:
+
+```bash
+# Demo: bus + watcher + producer + consumer working together
+$ node bin/amm.mjs streaming demo
+Streaming demo:
+  bus received       : 1
+  consumer received  : 2
+  consumer topics   : 1
+  producer metrics   : {"emitted":2,"queued":0,"dropped":0,"consumers":1}
+```
+
+| Engine | Use case |
+|--------|----------|
+| `EventBus` | Cross-store notification fan-out — any component subscribes to a topic and gets called when a memory change fires |
+| `MemoryWatcher` | Polling adapter for stores with `.size()` / `.entries()` — detects delta and emits high-priority events on bulk changes |
+| `StreamProducer` | Bounded queue (1024 cap, drops oldest) with consumer fan-out — handles burst writes without OOM |
+| `StreamConsumer` | Binds a producer + aggregates events by topic/kind for observability dashboards |
+| `StreamingMasterIndex` | Batch 8/8 master index — `count()===5`, `list()` returns all 5 |
+
+Wired into MCP via 4 new `Streaming.*` tools (32 → 36 total). Same MCP server, same JSON-RPC stdio — `node bin/amm.js mcp call tools/call '{"name":"StreamProducer.emit","arguments":{"topic":"memory.create","kind":"create"}}'`.
+
 
 ## Architecture
 
@@ -151,24 +199,23 @@ node bin/amm.js mcp serve
 agent-memory-marketplace/
 ├── .github/workflows/deploy.yml     ← GitHub Actions → GitHub Pages
 ├── src/
-│   ├── engines/
-│   │   ├── AgentMemoryCore.ts          ← V5216-V5225 (10 core engines + tests)
-│   │   ├── AgentMemoryCore.test.ts     ← 12 tests
-│   │   ├── AgentMemoryAdvanced.ts      ← V5226-V5235 (10 advanced engines + tests)
-│   │   ├── AgentMemoryAdvanced.test.ts ← 9 tests
-│   │   ├── AgentMemoryIntegration.ts   ← V5236-V5245 (8 integration engines + tests)
-│   │   └── AgentMemoryIntegration.test.ts ← 14 tests
-│   ├── data/
-│   │   ├── memoryEngines.ts            ← 28 engine metadata records
-│   │   └── liveDemos.ts                ← runnable demos for each engine
+│   ├── engines/                       ← V5216-V5245 + V5556-V5575 (38 engines + tests)
+│   ├── multimodal/                    ← V5611-V5625 (15 multimodal engines + tests)
+│   ├── mcp/                           ← V5576-V5595 (MCPServer + OpenMemoryAdapter)
+│   ├── migration/                     ← V5596-V5610 (15 migration engines + tests)
+│   ├── streaming/                     ← V5626-V5640 (5 streaming engines + tests)
+│   ├── data/                          ← memoryEngines + liveDemos + i18n
 │   ├── styles/themes.css               ← 4 themes with CSS custom properties
 │   ├── runtime.ts                      ← 50-LOC zero-dep React-like runtime
 │   ├── App.ts                          ← Main app with search/filter/demos/modals
 │   ├── main.ts                         ← Entry point
 │   └── env.d.ts
+├── bin/
+│   ├── amm.ts                         ← CLI source (mcp/openmem/streaming/compat)
+│   └── build-cli.mjs                  ← esbuild CLI bundler → bin/amm.mjs
 ├── public/favicon.svg
 ├── index.html
-├── build.mjs                           ← esbuild builder (no vite plugin-react)
+├── build.mjs                           ← esbuild web bundler (no vite plugin-react)
 ├── package.json
 ├── tsconfig.json
 ├── vitest.config.ts
@@ -190,13 +237,19 @@ $ npx vitest run
  ✓ src/engines/AgentMemoryIntegration.test.ts (14 tests)
  ✓ src/engines/AgentMemoryCore.test.ts (12 tests)
  ✓ src/engines/MemVectorCore.test.ts (11 tests)
+ ✓ src/data/i18n.test.ts (12 tests)
+ ✓ src/mcp/OpenMemoryAdapter.test.ts (30 tests)
+ ✓ src/multimodal/MultimodalCore.test.ts (37 tests)
+ ✓ src/migration/MigrationEngine.test.ts (56 tests)
+ ✓ src/streaming/StreamingCore.test.ts (35 tests)
+ ✓ src/mcp/MCPServer.test.ts (23 tests)
 
- Test Files  4 passed (4)
-      Tests  49 passed (49)
-   Duration  1.00s
+ Test Files  10 passed (10)
+      Tests  242 passed (242)
+   Duration  ~1.5s
 ```
 
-**49/49 tests pass · 100% · 1.00s**.
+**242/242 tests pass · 100% · ~1.5s**.
 
 ## Relationship to `agent-skills-marketplace`
 
@@ -204,11 +257,12 @@ This project is a **sister** to [`agent-skills-marketplace`](https://yeluo45.git
 
 ```
 Skills (what an agent KNOWS)        Memory (what an agent REMEMBERS)
-─────────────────────────────────  ──────────────────────────────────
+─────────────────────────────────  ─────────────────────────────────
 agent-skills-marketplace           agent-memory-marketplace  ← you are here
-  11 engines · 11 tests              28 engines · 38 tests
+  11 engines · 11 tests              79 engines · 242 tests
   "Web Search", "Code Review",       "EpisodicStore", "ForgettingEngine",
-   "TencentDB Memory"                 "MemoryHierarchy", ...
+   "TencentDB Memory"                 "MemoryHierarchy", "EventBus", ...
+                                     MCP: 36 tools (live streaming)
 ```
 
 They share the same React-free theme system, layout patterns, GitHub Actions → Pages pipeline. Skills get installed and produce memory events; memory keeps them consistent across sessions.

@@ -15,6 +15,7 @@ import { MemoryDashboard, MemoryConfig, MemoryAudit, MemoryProfile, MemoryMigrat
 import { VectorEmbedder, CosineSim, DistanceMetric, VectorNormalizer, HNSWIndex, PQCompressor, HybridSearcher, VectorCache, TokenBag, VectorMigrator, MemVectorCoreIndex } from '../engines/MemVectorCore';
 import { LettaImportParser, LettaExporter, MemoryMigrator, FormatConverter, MigrationDiffEngine, MIGRATION_TOOLS } from '../migration/MigrationEngine';
 import { ImageEmbedder, AudioEmbed, ImageSearch, ImageCaption, MediaClassifier, MediaMetadataExtractor, MultimodalMerge, MediaTranscript, MULTIMODAL_TOOLS, MultimodalMemoryStore } from '../multimodal/MultimodalCore';
+import { EventBus, MemoryWatcher, StreamProducer, StreamConsumer, StreamingMasterIndex, STREAMING_TOOLS } from '../streaming/StreamingCore';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -83,6 +84,7 @@ export class MCPServer {
     this._tools = [
       ...MIGRATION_TOOLS,
       ...MULTIMODAL_TOOLS,
+      ...STREAMING_TOOLS,
       {
         name: 'EpisodicStore.record',
         description: 'Append-only timestamped episode ledger with importance scoring.',
@@ -566,6 +568,42 @@ export class MCPServer {
             Number(args.topK ?? 5),
           );
           return { content: [{ type: 'text', text: JSON.stringify(hits) }] };
+        }
+
+        // V5626+: Memory Streaming tools
+        case 'EventBus.subscribe': {
+          const bus = new EventBus();
+          let received = 0;
+          const sid = bus.subscribe(String(args.topic), () => (received += 1));
+          bus.publish({ topic: String(args.topic), kind: 'create', ts: Date.now(), payload: { demo: true } });
+          const s = bus.stats();
+          return { content: [{ type: 'text', text: JSON.stringify({ subscribeId: sid, dispatched: s.subscribers, received }) }] };
+        }
+
+        case 'StreamProducer.emit': {
+          const p = new StreamProducer();
+          const r = p.emit(String(args.topic), String(args.kind) as 'create' | 'update' | 'delete' | 'access' | 'metric', { agentId: 'demo' });
+          return { content: [{ type: 'text', text: JSON.stringify(r) }] };
+        }
+
+        case 'StreamProducer.flush': {
+          const p = new StreamProducer();
+          p.emit('demo', 'create', { a: 1 });
+          p.emit('demo', 'update', { a: 2 });
+          const drained = p.flush();
+          return { content: [{ type: 'text', text: JSON.stringify({ drained }) }] };
+        }
+
+        case 'StreamConsumer.aggregate': {
+          const p = new StreamProducer();
+          const c = new StreamConsumer();
+          c.bind(p);
+          p.emit('a', 'create', {});
+          p.emit('a', 'update', {});
+          p.emit('b', 'delete', {});
+          p.flush();
+          const agg = c.aggregate();
+          return { content: [{ type: 'text', text: JSON.stringify({ aggregated: agg }) }] };
         }
 
         default:
