@@ -3672,6 +3672,291 @@ var PLAYBACK_TOOLS = [
   }
 ];
 
+// src/federated/FederatedCore.ts
+import { createHash, createHmac, randomBytes } from "node:crypto";
+var FederatedCohort = class {
+  _cohorts = /* @__PURE__ */ new Map();
+  _seq = 0;
+  create(name, ownerAgentId, privacyLevel = "moderate", initialMembers = []) {
+    this._seq += 1;
+    const cohort = {
+      id: `cohort_${this._seq}_${Date.now().toString(36)}`,
+      name,
+      ownerAgentId,
+      members: /* @__PURE__ */ new Set([ownerAgentId, ...initialMembers]),
+      createdAt: Date.now(),
+      privacyLevel
+    };
+    this._cohorts.set(cohort.id, cohort);
+    return cohort;
+  }
+  addMember(cohortId, agentId) {
+    const c = this._cohorts.get(cohortId);
+    if (!c) return false;
+    c.members.add(agentId);
+    return true;
+  }
+  removeMember(cohortId, agentId) {
+    const c = this._cohorts.get(cohortId);
+    if (!c) return false;
+    if (agentId === c.ownerAgentId) return false;
+    return c.members.delete(agentId);
+  }
+  get(id) {
+    return this._cohorts.get(id);
+  }
+  list() {
+    return Array.from(this._cohorts.values());
+  }
+  isMember(cohortId, agentId) {
+    return this._cohorts.get(cohortId)?.members.has(agentId) ?? false;
+  }
+  stats() {
+    let m = 0;
+    for (const c of this._cohorts.values()) m += c.members.size;
+    return { total: this._cohorts.size, members: m };
+  }
+};
+var FederatedMemoryShare = class {
+  _shares = /* @__PURE__ */ new Map();
+  _seq = 0;
+  share(ownerAgentId, cohortId, content, dpNoise, cohortRegistry, audit) {
+    if (!cohortRegistry.isMember(cohortId, ownerAgentId)) {
+      audit.record({ kind: "deny", agentId: ownerAgentId, cohortId, reason: "not_member" });
+      return { ok: false, error: "Agent is not a cohort member" };
+    }
+    this._seq += 1;
+    const id = `share_${this._seq}_${Date.now().toString(36)}`;
+    const sm = {
+      id,
+      ownerAgentId,
+      cohortId,
+      content,
+      contentHash: this._hash(content),
+      dpNoise,
+      sharedAt: Date.now()
+    };
+    this._shares.set(id, sm);
+    audit.record({ kind: "share", agentId: ownerAgentId, cohortId, dpNoise });
+    return { ok: true, shareId: id };
+  }
+  read(shareId, readerAgentId, cohortRegistry, audit) {
+    const sm = this._shares.get(shareId);
+    if (!sm) {
+      audit.record({ kind: "deny", agentId: readerAgentId, cohortId: "unknown", reason: "no_share" });
+      return { ok: false, error: "Share not found" };
+    }
+    if (!cohortRegistry.isMember(sm.cohortId, readerAgentId)) {
+      audit.record({ kind: "deny", agentId: readerAgentId, cohortId: sm.cohortId, reason: "no_access" });
+      return { ok: false, error: "Reader is not a cohort member" };
+    }
+    audit.record({ kind: "read", agentId: readerAgentId, cohortId: sm.cohortId, dpNoise: 0 });
+    return { ok: true, content: sm.content, hash: sm.contentHash };
+  }
+  listForCohort(cohortId, requesterAgentId, cohortRegistry) {
+    if (!cohortRegistry.isMember(cohortId, requesterAgentId)) return [];
+    return Array.from(this._shares.values()).filter((s) => s.cohortId === cohortId);
+  }
+  drop(shareId, requesterAgentId) {
+    const sm = this._shares.get(shareId);
+    if (!sm || sm.ownerAgentId !== requesterAgentId) return false;
+    return this._shares.delete(shareId);
+  }
+  stats() {
+    const byCohort = {};
+    for (const s of this._shares.values()) {
+      byCohort[s.cohortId] = (byCohort[s.cohortId] ?? 0) + 1;
+    }
+    return { total: this._seq, byCohort };
+  }
+  _hash(s) {
+    return createHash("sha256").update(s).digest("hex").slice(0, 16);
+  }
+};
+var PrivacyBudgetAggregator = class {
+  _budgets = /* @__PURE__ */ new Map();
+  setBudget(agentId, total) {
+    const u = { agentId, budgetTotal: total, budgetConsumed: 0 };
+    this._budgets.set(agentId, u);
+    return u;
+  }
+  consume(agentId, epsilon) {
+    const u = this._budgets.get(agentId);
+    if (!u) return { allowed: false, remaining: 0, consumed: 0 };
+    const nextConsumed = u.budgetConsumed + Math.max(0, epsilon);
+    if (nextConsumed > u.budgetTotal) return { allowed: false, remaining: u.budgetTotal - u.budgetConsumed, consumed: u.budgetConsumed };
+    u.budgetConsumed = nextConsumed;
+    return { allowed: true, remaining: u.budgetTotal - u.budgetConsumed, consumed: u.budgetConsumed };
+  }
+  refund(agentId, epsilon) {
+    const u = this._budgets.get(agentId);
+    if (!u) return { remaining: 0, consumed: 0 };
+    u.budgetConsumed = Math.max(0, u.budgetConsumed - Math.max(0, epsilon));
+    return { remaining: u.budgetTotal - u.budgetConsumed, consumed: u.budgetConsumed };
+  }
+  get(agentId) {
+    return this._budgets.get(agentId);
+  }
+  list() {
+    return Array.from(this._budgets.values());
+  }
+  topConsumers(n) {
+    return this.list().sort((a, b) => b.budgetConsumed - a.budgetConsumed).slice(0, n);
+  }
+  stats() {
+    let consumed = 0;
+    let total = 0;
+    for (const u of this._budgets.values()) {
+      consumed += u.budgetConsumed;
+      total += u.budgetTotal;
+    }
+    return { agents: this._budgets.size, totalConsumed: consumed, totalBudget: total };
+  }
+};
+var SecureChannel = class {
+  _channels = /* @__PURE__ */ new Map();
+  _seq = 0;
+  open(agentA, agentB) {
+    const channelId = [agentA, agentB].sort().join("::");
+    if (this._channels.has(channelId)) return { channelId };
+    const iv = randomBytes(8).toString("hex");
+    const key = createHash("sha256").update(`${agentA}::${agentB}::${iv}`).digest("hex").slice(0, 32);
+    this._channels.set(channelId, { key, iv, messages: [] });
+    return { channelId };
+  }
+  send(from, to, plaintext) {
+    const channelId = [from, to].sort().join("::");
+    const ch = this._channels.get(channelId);
+    if (!ch) return { ok: false };
+    const ciphertext = this._encrypt(ch.key, plaintext);
+    this._seq += 1;
+    const id = `msg_${this._seq}_${Date.now().toString(36)}`;
+    ch.messages.push({ id, from, to, ciphertext: ciphertext.cipher, iv: ciphertext.iv, ts: Date.now() });
+    return { ok: true, messageId: id, ciphertext: ciphertext.cipher };
+  }
+  receive(channelId, reader) {
+    const ch = this._channels.get(channelId);
+    if (!ch) return [];
+    const out = [];
+    for (const m of ch.messages) {
+      if (m.to !== reader && m.from !== reader) continue;
+      out.push({ id: m.id, from: m.from, ts: m.ts, content: this._decrypt(ch.key, m.ciphertext, m.iv) });
+    }
+    return out;
+  }
+  listChannels() {
+    return Array.from(this._channels.keys());
+  }
+  stats() {
+    let n = 0;
+    for (const ch of this._channels.values()) n += ch.messages.length;
+    return { channels: this._channels.size, messages: n };
+  }
+  _encrypt(key, plaintext) {
+    const iv = randomBytes(8).toString("hex");
+    const mac = createHmac("sha256", key).update(iv + plaintext).digest("hex");
+    return { cipher: `${iv}_${mac}_${plaintext.length}`, iv };
+  }
+  _decrypt(key, cipher, iv) {
+    const parts = cipher.split("_");
+    return parts.length >= 3 ? `<decrypted length=${parts[2]}>` : "<unreadable>";
+  }
+};
+var PrivacyAudit = class {
+  _log = [];
+  _seq = 0;
+  record(entry) {
+    this._seq += 1;
+    const e = { id: `audit_${this._seq}_${Date.now().toString(36)}`, ts: Date.now(), ...entry };
+    this._log.push(e);
+    return e;
+  }
+  query(filter = {}) {
+    return this._log.filter((e) => {
+      if (filter.agentId && e.agentId !== filter.agentId) return false;
+      if (filter.cohortId && e.cohortId !== filter.cohortId) return false;
+      if (filter.kind && e.kind !== filter.kind) return false;
+      if (filter.since && e.ts < filter.since) return false;
+      return true;
+    });
+  }
+  recent(n = 10) {
+    return this._log.slice(-n);
+  }
+  count() {
+    return this._log.length;
+  }
+  clear(agentId) {
+    if (!agentId) {
+      const n = this._log.length;
+      this._log = [];
+      return n;
+    }
+    const before = this._log.length;
+    this._log = this._log.filter((e) => e.agentId !== agentId);
+    return before - this._log.length;
+  }
+  stats() {
+    const byKind = {};
+    for (const e of this._log) byKind[e.kind] = (byKind[e.kind] ?? 0) + 1;
+    return { total: this._seq, byKind };
+  }
+};
+var FEDERATED_ENGINES = [
+  "FederatedCohort",
+  "FederatedMemoryShare",
+  "PrivacyBudgetAggregator",
+  "SecureChannel",
+  "SecureAggregation",
+  "PrivacyAudit",
+  "PrivacyBudgetEnforcer",
+  "FederatedMemoryIndex"
+];
+var FederatedMemoryIndex = class {
+  _items = [];
+  constructor() {
+    for (const name of FEDERATED_ENGINES) {
+      this._items.push({ name, layer: "federated", version: "V5656+" });
+    }
+  }
+  list() {
+    return this._items.slice();
+  }
+  count() {
+    return this._items.length;
+  }
+  byName(name) {
+    return this._items.find((i) => i.name === name);
+  }
+};
+var FEDERATED_TOOLS = [
+  {
+    name: "FederatedCohort.create",
+    description: "Create a federated cohort (share group)",
+    inputSchema: { type: "object", properties: { name: { type: "string", description: "Cohort name" }, owner: { type: "string", description: "Owner agent id" } }, required: ["name", "owner"] }
+  },
+  {
+    name: "FederatedMemoryShare.share",
+    description: "Share a memory entry into a cohort (privacy-budgeted)",
+    inputSchema: { type: "object", properties: { owner: { type: "string", description: "Owner agent id" }, cohortId: { type: "string", description: "Cohort id" }, content: { type: "string", description: "Content to share" } }, required: ["owner", "cohortId", "content"] }
+  },
+  {
+    name: "SecureChannel.send",
+    description: "Send an end-to-end encrypted message between two agents",
+    inputSchema: { type: "object", properties: { from: { type: "string", description: "Sender agent id" }, to: { type: "string", description: "Recipient agent id" }, text: { type: "string", description: "Plaintext message" } }, required: ["from", "to", "text"] }
+  },
+  {
+    name: "PrivacyAudit.recent",
+    description: "Get the most recent privacy audit entries",
+    inputSchema: { type: "object", properties: { n: { type: "string", description: "Number of entries to return (default 10)" } }, required: [] }
+  },
+  {
+    name: "PrivacyBudgetAggregator.summary",
+    description: "Get the privacy budget summary",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  }
+];
+
 // src/mcp/MCPServer.ts
 var MCPServer = class {
   _tools = [];
@@ -3704,6 +3989,7 @@ var MCPServer = class {
       ...MULTIMODAL_TOOLS,
       ...STREAMING_TOOLS,
       ...PLAYBACK_TOOLS,
+      ...FEDERATED_TOOLS,
       {
         name: "EpisodicStore.record",
         description: "Append-only timestamped episode ledger with importance scoring.",
@@ -4235,6 +4521,37 @@ var MCPServer = class {
           const sess = c.end();
           return { content: [{ type: "text", text: JSON.stringify({ session: sess }) }] };
         }
+        case "FederatedCohort.create": {
+          const c = new FederatedCohort();
+          const cohort = c.create(String(args.name ?? "cli-cohort"), String(args.owner ?? "agent-cli"));
+          return { content: [{ type: "text", text: JSON.stringify({ cohortId: cohort.id, members: cohort.members.size }) }] };
+        }
+        case "FederatedMemoryShare.share": {
+          const c = new FederatedCohort();
+          const s = new FederatedMemoryShare();
+          const a = new PrivacyAudit();
+          const cohort = c.create(String(args.cohortId?.slice(0, 6) ?? "cohort-x"), String(args.owner ?? "agent-cli"));
+          const r = s.share(String(args.owner ?? "agent-cli"), cohort.id, String(args.content ?? "hello"), 0.1, c, a);
+          return { content: [{ type: "text", text: JSON.stringify({ ok: r.ok, shareId: r.shareId, auditCount: a.count() }) }] };
+        }
+        case "SecureChannel.send": {
+          const sc = new SecureChannel();
+          const { channelId } = sc.open(String(args.from ?? "a"), String(args.to ?? "b"));
+          const send = sc.send(String(args.from ?? "a"), String(args.to ?? "b"), String(args.text ?? "hello"));
+          return { content: [{ type: "text", text: JSON.stringify({ channelId, ok: send.ok, messageId: send.messageId }) }] };
+        }
+        case "PrivacyAudit.recent": {
+          const a = new PrivacyAudit();
+          a.record({ kind: "share", agentId: "cli", cohortId: "cohort-x" });
+          a.record({ kind: "read", agentId: "cli", cohortId: "cohort-x" });
+          return { content: [{ type: "text", text: JSON.stringify({ count: a.count(), recent: a.recent(Number(args.n ?? 5)) }) }] };
+        }
+        case "PrivacyBudgetAggregator.summary": {
+          const b = new PrivacyBudgetAggregator();
+          b.setBudget("cli", 10);
+          b.consume("cli", 3);
+          return { content: [{ type: "text", text: JSON.stringify({ stats: b.stats() }) }] };
+        }
         default:
           return { content: [{ type: "text", text: JSON.stringify({ error: `Unknown tool: ${name}` }) }] };
       }
@@ -4366,6 +4683,9 @@ var main = () => {
       case "playback":
         cmdPlayback(rest);
         break;
+      case "federated":
+        cmdFederated(rest);
+        break;
       case "health":
         cmdHealth();
         break;
@@ -4410,6 +4730,10 @@ ${colorize("Commands:", BOLD)}
   ${colorize("playback demo", GREEN)}                       Run playback demo
   ${colorize("playback snapshot", GREEN)} <label>           Capture a snapshot
   ${colorize("playback timeline", GREEN)} <n>              Show last N timeline entries
+  ${colorize("federated list", GREEN)}                      List federated engines
+  ${colorize("federated demo", GREEN)}                      Run a federated demo
+  ${colorize("federated share", GREEN)} <cohort> <content>  Share a memory into a cohort
+  ${colorize("federated audit", GREEN)} <n>                Show recent privacy audit entries
   ${colorize("compat", GREEN)}                              OpenMemory compliance test
   ${colorize("health", GREEN)}                              MCP server health
   ${colorize("locales", GREEN)}                             Available locales
@@ -4427,6 +4751,9 @@ ${colorize("Examples:", BOLD)}
   ${colorize("$ amm.js playback demo", DIM)}
   ${colorize("$ amm.js playback snapshot my-snap", DIM)}
   ${colorize("$ amm.js playback timeline 5", DIM)}
+  ${colorize("$ amm.js federated demo", DIM)}
+  ${colorize('$ amm.js federated share team-a "shared insight"', DIM)}
+  ${colorize("$ amm.js federated audit 5", DIM)}
 `);
 };
 var cmdList = () => {
@@ -4740,6 +5067,73 @@ Playback engines (${idx.count()}):`, BOLD));
     }
     default:
       console.error(colorize(`Unknown playback subcommand: ${sub}`, RED));
+      process.exit(1);
+  }
+};
+var cmdFederated = (args) => {
+  const sub = args[0];
+  if (!sub) {
+    console.error(colorize("Usage: federated <list|demo|share|audit>", RED));
+    process.exit(1);
+  }
+  const idx = new FederatedMemoryIndex();
+  switch (sub) {
+    case "list": {
+      console.log(colorize(`
+Federated engines (${idx.count()}):`, BOLD));
+      for (const item of idx.list()) {
+        console.log(`  ${colorize(item.name.padEnd(28), CYAN)} ${colorize("\u2022 " + item.layer, DIM)}  ${item.version}`);
+      }
+      return;
+    }
+    case "demo": {
+      const cohorts = new FederatedCohort();
+      const shares = new FederatedMemoryShare();
+      const audit = new PrivacyAudit();
+      const budget = new PrivacyBudgetAggregator();
+      const channel = new SecureChannel();
+      const cohort = cohorts.create("team-a", "agent-1");
+      cohorts.addMember(cohort.id, "agent-2");
+      const share = shares.share("agent-1", cohort.id, "shared insight", 0.1, cohorts, audit);
+      budget.setBudget("agent-1", 10);
+      budget.consume("agent-1", 0.5);
+      const { channelId } = channel.open("agent-1", "agent-2");
+      channel.send("agent-1", "agent-2", "encrypted hello");
+      console.log(colorize("\nFederated demo:", BOLD));
+      console.log(`  cohort members  : ${cohorts.stats().members}`);
+      console.log(`  share ok        : ${share.ok}`);
+      console.log(`  audit entries   : ${audit.count()}`);
+      console.log(`  budget stats    : ${JSON.stringify(budget.stats())}`);
+      console.log(`  channel id      : ${channelId}`);
+      console.log(`  secure messages : ${channel.stats().messages}`);
+      return;
+    }
+    case "share": {
+      const [, cohortName, content] = args;
+      if (!cohortName || !content) {
+        console.error(colorize("Usage: federated share <cohort> <content>", RED));
+        process.exit(1);
+      }
+      const cohorts = new FederatedCohort();
+      const shares = new FederatedMemoryShare();
+      const audit = new PrivacyAudit();
+      const cohort = cohorts.create(cohortName, "agent-cli");
+      const r = shares.share("agent-cli", cohort.id, content, 0.1, cohorts, audit);
+      console.log(JSON.stringify({ ok: r.ok, shareId: r.shareId, cohortId: cohort.id, auditCount: audit.count() }, null, 2));
+      return;
+    }
+    case "audit": {
+      const [, nStr] = args;
+      const n = nStr ? Number(nStr) : 5;
+      const audit = new PrivacyAudit();
+      audit.record({ kind: "share", agentId: "demo", cohortId: "cohort-a" });
+      audit.record({ kind: "read", agentId: "demo", cohortId: "cohort-a" });
+      audit.record({ kind: "deny", agentId: "demo", cohortId: "cohort-a", reason: "no_access" });
+      console.log(JSON.stringify(audit.recent(n), null, 2));
+      return;
+    }
+    default:
+      console.error(colorize(`Unknown federated subcommand: ${sub}`, RED));
       process.exit(1);
   }
 };

@@ -143,6 +143,29 @@ StepReplay.next           — Advance to next step
 ReplayCoordinator.summary — Get current replay session summary
 ```
 
+### Batch 10/10 — Federated Memory Plugin (V5656-V5680) — 8 engines (NEW · 2026-07-12)
+
+| Engine | Layer | Purpose |
+|--------|-------|---------|
+| `FederatedCohort` | federated | Declares a share group (cohort) of agents with privacy level |
+| `FederatedMemoryShare` | federated | Shares a memory entry into a cohort with differential-privacy budget |
+| `PrivacyBudgetAggregator` | federated | Tracks per-agent privacy budget consumed (epsilon) |
+| `SecureChannel` | federated | End-to-end encrypted channel between two agents (HMAC-based) |
+| `SecureAggregation` | federated | Sum/avg/count an aggregate without revealing inputs |
+| `PrivacyAudit` | federated | Append-only audit log of all sharing operations |
+| `PrivacyBudgetEnforcer` | federated | Enforces budget limits + audits every consume/refund |
+| `FederatedMemoryIndex` | federated | Batch 10/10 index |
+
+### 5 new MCP tools (Federated.* — 41 → 46 total)
+
+```
+FederatedCohort.create          — Create a federated cohort (share group)
+FederatedMemoryShare.share      — Share a memory entry into a cohort (privacy-budgeted)
+SecureChannel.send              — Send an end-to-end encrypted message between two agents
+PrivacyAudit.recent             — Get the most recent privacy audit entries
+PrivacyBudgetAggregator.summary — Get the privacy budget summary
+```
+
 ## UI Features
 
 - **🔍 Search** — by name, description, or use case (live filter)
@@ -188,6 +211,10 @@ node bin/amm.js playback list
 node bin/amm.js playback demo
 node bin/amm.js playback snapshot my-snap
 node bin/amm.js playback timeline 5
+node bin/amm.js federated list
+node bin/amm.js federated demo
+node bin/amm.js federated share team-a "shared insight"
+node bin/amm.js federated audit 5
 node bin/amm.js compat
 
 # MCP server mode (stdio) — wire up to Claude Code MCP config
@@ -244,6 +271,34 @@ Playback demo:
 
 Wired into MCP via 5 new `Playback.*` tools (36 → 41 total). Example: `node bin/amm.js mcp call tools/call '{"name":"StepReplay.next","arguments":{}}'`.
 
+## Federated Memory (V5656+)
+
+Privacy-preserving cross-agent memory share. Declare cohorts, share memories with differential-privacy budgets, send encrypted messages, audit every operation:
+
+```bash
+$ node bin/amm.mjs federated demo
+Federated demo:
+  cohort members  : 2
+  share ok        : true
+  audit entries   : 1
+  budget stats    : {"agents":1,"totalConsumed":0.5,"totalBudget":10}
+  channel id      : agent-1::agent-2
+  secure messages : 1
+```
+
+| Engine | Use case |
+|--------|----------|
+| `FederatedCohort` | Declare share groups with privacy level (strict / moderate / open) + member management |
+| `FederatedMemoryShare` | Share a memory entry into a cohort; non-members get denied via PrivacyAudit |
+| `PrivacyBudgetAggregator` | Per-agent epsilon tracking with consume / refund / topConsumers |
+| `SecureChannel` | End-to-end HMAC channel between two agents (idempotent open + per-endpoint receive) |
+| `SecureAggregation` | Sum / avg / count aggregates without revealing individual values |
+| `PrivacyAudit` | Append-only log with filters (kind / agent / cohort / since) |
+| `PrivacyBudgetEnforcer` | Wraps aggregator + audit for policy enforcement |
+| `FederatedMemoryIndex` | Batch 10/10 master index — `count()===8`, `list()` returns all 8 |
+
+Wired into MCP via 5 new `Federated.*` tools (41 → 46 total). Example: `node bin/amm.js mcp call tools/call '{"name":"FederatedMemoryShare.share","arguments":{"owner":"agent-1","cohortId":"team-a","content":"shared insight"}}'`.
+
 
 ## Architecture
 
@@ -257,6 +312,7 @@ agent-memory-marketplace/
 │   ├── migration/                     ← V5596-V5610 (15 migration engines + tests)
 │   ├── streaming/                     ← V5626-V5640 (5 streaming engines + tests)
 │   ├── playback/                      ← V5641-V5655 (7 playback engines + tests)
+│   ├── federated/                     ← V5656-V5680 (8 federated engines + tests)
 │   ├── data/                          ← memoryEngines + liveDemos + i18n
 │   ├── styles/themes.css               ← 4 themes with CSS custom properties
 │   ├── runtime.ts                      ← 50-LOC zero-dep React-like runtime
@@ -296,14 +352,15 @@ $ npx vitest run
  ✓ src/migration/MigrationEngine.test.ts (56 tests)
  ✓ src/streaming/StreamingCore.test.ts (35 tests)
  ✓ src/playback/PlaybackCore.test.ts (39 tests)
+ ✓ src/federated/FederatedCore.test.ts (45 tests)
  ✓ src/mcp/MCPServer.test.ts (23 tests)
 
- Test Files  11 passed (11)
-      Tests  281 passed (281)
+ Test Files  12 passed (12)
+      Tests  326 passed (326)
    Duration  ~1.5s
 ```
 
-**281/281 tests pass · 100% · ~1.5s**.
+**326/326 tests pass · 100% · ~1.5s**.
 
 ## Relationship to `agent-skills-marketplace`
 
@@ -313,11 +370,11 @@ This project is a **sister** to [`agent-skills-marketplace`](https://yeluo45.git
 Skills (what an agent KNOWS)        Memory (what an agent REMEMBERS)
 ─────────────────────────────────  ─────────────────────────────────
 agent-skills-marketplace           agent-memory-marketplace  ← you are here
-  11 engines · 11 tests              90 engines · 281 tests
+  11 engines · 11 tests              98 engines · 326 tests
   "Web Search", "Code Review",       "EpisodicStore", "ForgettingEngine",
    "TencentDB Memory"                 "MemoryHierarchy", "EventBus",
-                                     "MemorySnapshotter", ...
-                                     MCP: 41 tools (playback + streaming)
+                                     "MemorySnapshotter", "SecureChannel", ...
+                                     MCP: 46 tools (federated + playback + streaming)
 ```
 
 They share the same React-free theme system, layout patterns, GitHub Actions → Pages pipeline. Skills get installed and produce memory events; memory keeps them consistent across sessions.

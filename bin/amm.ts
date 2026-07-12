@@ -26,6 +26,10 @@
 //   playback demo                       Run playback demo (snapshot → timeline → diff → replay)
 //   playback snapshot <label>           Capture a snapshot
 //   playback timeline <n>               Show last N timeline entries
+//   federated list                      List federated engines
+//   federated demo                      Run a federated demo (cohort → share → secure → audit)
+//   federated share <cohort> <content>  Share a message into a cohort
+//   federated audit <n>                 Show recent privacy audit entries
 //   compat                              Run OpenMemory compliance test
 //   health                              MCP server health check
 //   locales                             Show available locales
@@ -36,6 +40,7 @@ import { MCPServer } from '../src/mcp/MCPServer';
 import { OpenMemoryAdapter, OpenMemoryComplianceTest } from '../src/mcp/OpenMemoryAdapter';
 import { EventBus, MemoryWatcher, StreamProducer, StreamConsumer, StreamingMasterIndex } from '../src/streaming/StreamingCore';
 import { MemorySnapshotter, TimelineView, TreeVisualizer, DiffEngine, StepReplay, ReplayCoordinator, PlaybackMasterIndex } from '../src/playback/PlaybackCore';
+import { FederatedCohort, FederatedMemoryShare, PrivacyBudgetAggregator, SecureChannel, SecureAggregation, PrivacyAudit, PrivacyBudgetEnforcer, FederatedMemoryIndex } from '../src/federated/FederatedCore';
 
 const BOLD = '\x1b[1m';
 const CYAN = '\x1b[36m';
@@ -80,6 +85,9 @@ const main = (): void => {
         break;
       case 'playback':
         cmdPlayback(rest);
+        break;
+      case 'federated':
+        cmdFederated(rest);
         break;
       case 'health':
         cmdHealth();
@@ -126,6 +134,10 @@ ${colorize('Commands:', BOLD)}
   ${colorize('playback demo', GREEN)}                       Run playback demo
   ${colorize('playback snapshot', GREEN)} <label>           Capture a snapshot
   ${colorize('playback timeline', GREEN)} <n>              Show last N timeline entries
+  ${colorize('federated list', GREEN)}                      List federated engines
+  ${colorize('federated demo', GREEN)}                      Run a federated demo
+  ${colorize('federated share', GREEN)} <cohort> <content>  Share a memory into a cohort
+  ${colorize('federated audit', GREEN)} <n>                Show recent privacy audit entries
   ${colorize('compat', GREEN)}                              OpenMemory compliance test
   ${colorize('health', GREEN)}                              MCP server health
   ${colorize('locales', GREEN)}                             Available locales
@@ -143,6 +155,9 @@ ${colorize('Examples:', BOLD)}
   ${colorize('$ amm.js playback demo', DIM)}
   ${colorize('$ amm.js playback snapshot my-snap', DIM)}
   ${colorize('$ amm.js playback timeline 5', DIM)}
+  ${colorize('$ amm.js federated demo', DIM)}
+  ${colorize('$ amm.js federated share team-a "shared insight"', DIM)}
+  ${colorize('$ amm.js federated audit 5', DIM)}
 `);
 };
 
@@ -458,6 +473,73 @@ const cmdPlayback = (args: string[]): void => {
     }
     default:
       console.error(colorize(`Unknown playback subcommand: ${sub}`, RED));
+      process.exit(1);
+  }
+};
+
+const cmdFederated = (args: string[]): void => {
+  const sub = args[0];
+  if (!sub) {
+    console.error(colorize('Usage: federated <list|demo|share|audit>', RED));
+    process.exit(1);
+  }
+  const idx = new FederatedMemoryIndex();
+  switch (sub) {
+    case 'list': {
+      console.log(colorize(`\nFederated engines (${idx.count()}):`, BOLD));
+      for (const item of idx.list()) {
+        console.log(`  ${colorize(item.name.padEnd(28), CYAN)} ${colorize('• ' + item.layer, DIM)}  ${item.version}`);
+      }
+      return;
+    }
+    case 'demo': {
+      const cohorts = new FederatedCohort();
+      const shares = new FederatedMemoryShare();
+      const audit = new PrivacyAudit();
+      const budget = new PrivacyBudgetAggregator();
+      const channel = new SecureChannel();
+      const cohort = cohorts.create('team-a', 'agent-1');
+      cohorts.addMember(cohort.id, 'agent-2');
+      const share = shares.share('agent-1', cohort.id, 'shared insight', 0.1, cohorts, audit);
+      budget.setBudget('agent-1', 10);
+      budget.consume('agent-1', 0.5);
+      const { channelId } = channel.open('agent-1', 'agent-2');
+      channel.send('agent-1', 'agent-2', 'encrypted hello');
+      console.log(colorize('\nFederated demo:', BOLD));
+      console.log(`  cohort members  : ${cohorts.stats().members}`);
+      console.log(`  share ok        : ${share.ok}`);
+      console.log(`  audit entries   : ${audit.count()}`);
+      console.log(`  budget stats    : ${JSON.stringify(budget.stats())}`);
+      console.log(`  channel id      : ${channelId}`);
+      console.log(`  secure messages : ${channel.stats().messages}`);
+      return;
+    }
+    case 'share': {
+      const [, cohortName, content] = args;
+      if (!cohortName || !content) {
+        console.error(colorize('Usage: federated share <cohort> <content>', RED));
+        process.exit(1);
+      }
+      const cohorts = new FederatedCohort();
+      const shares = new FederatedMemoryShare();
+      const audit = new PrivacyAudit();
+      const cohort = cohorts.create(cohortName, 'agent-cli');
+      const r = shares.share('agent-cli', cohort.id, content, 0.1, cohorts, audit);
+      console.log(JSON.stringify({ ok: r.ok, shareId: r.shareId, cohortId: cohort.id, auditCount: audit.count() }, null, 2));
+      return;
+    }
+    case 'audit': {
+      const [, nStr] = args;
+      const n = nStr ? Number(nStr) : 5;
+      const audit = new PrivacyAudit();
+      audit.record({ kind: 'share', agentId: 'demo', cohortId: 'cohort-a' });
+      audit.record({ kind: 'read', agentId: 'demo', cohortId: 'cohort-a' });
+      audit.record({ kind: 'deny', agentId: 'demo', cohortId: 'cohort-a', reason: 'no_access' });
+      console.log(JSON.stringify(audit.recent(n), null, 2));
+      return;
+    }
+    default:
+      console.error(colorize(`Unknown federated subcommand: ${sub}`, RED));
       process.exit(1);
   }
 };

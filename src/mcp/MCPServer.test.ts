@@ -33,11 +33,11 @@ describe('MCPServer — JSON-RPC lifecycle', () => {
     expect(result.capabilities.resources).toBeTruthy();
   });
 
-  it('lists 41 tools across 9 layers', () => {
+  it('lists 46 tools across 10 layers', () => {
     const server = new MCPServer();
     const list = server.handle({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
     const tools = (list.result as { tools: Array<{ name: string }> }).tools;
-    expect(tools.length).toBe(41);
+    expect(tools.length).toBe(46);
     const names = tools.map(t => t.name);
     expect(names).toContain('EpisodicStore.record');
     expect(names).toContain('VectorEmbedder.embedText');
@@ -128,7 +128,7 @@ describe('MCPServer — JSON-RPC lifecycle', () => {
     expect(info.name).toBe('agent-memory-marketplace');
   });
 
-  it('handles all 41 tool calls without error', () => {
+  it('handles all 46 tool calls without error', () => {
     const server = new MCPServer();
     const tools = server.tools();
     for (const t of tools) {
@@ -150,11 +150,11 @@ describe('MCPServer — JSON-RPC lifecycle', () => {
 describe('MCPServer — additional features', () => {
   it('toolCount + resourceCount + health', () => {
     const server = new MCPServer();
-    expect(server.toolCount()).toBe(41);
+    expect(server.toolCount()).toBe(46);
     expect(server.resourceCount()).toBe(8);
     const h = server.health();
     expect(h.status).toBe('ok');
-    expect(h.toolCount).toBe(41);
+    expect(h.toolCount).toBe(46);
     expect(typeof h.uptime).toBe('number');
   });
 
@@ -201,7 +201,7 @@ describe('MCPServer — additional features', () => {
 
   it('MCPRequestRouter.server() exposes the underlying server', () => {
     const router = new MCPRequestRouter();
-    expect(router.server().toolCount()).toBe(41);
+    expect(router.server().toolCount()).toBe(46);
   });
 
   it('MCPErrorLogger records + retrieves + clears', () => {
@@ -230,7 +230,7 @@ describe('MCPServer — additional features', () => {
     hc.start();
     const r = hc.ping(server);
     expect(r.alive).toBe(true);
-    expect(r.tools).toBe(41);
+    expect(r.tools).toBe(46);
     expect(hc.checks()).toBe(1);
   });
 

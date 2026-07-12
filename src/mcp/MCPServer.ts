@@ -17,6 +17,7 @@ import { LettaImportParser, LettaExporter, MemoryMigrator, FormatConverter, Migr
 import { ImageEmbedder, AudioEmbed, ImageSearch, ImageCaption, MediaClassifier, MediaMetadataExtractor, MultimodalMerge, MediaTranscript, MULTIMODAL_TOOLS, MultimodalMemoryStore } from '../multimodal/MultimodalCore';
 import { EventBus, MemoryWatcher, StreamProducer, StreamConsumer, StreamingMasterIndex, STREAMING_TOOLS } from '../streaming/StreamingCore';
 import { MemorySnapshotter, TimelineView, StepReplay, ReplayCoordinator, PlaybackMasterIndex, PLAYBACK_TOOLS } from '../playback/PlaybackCore';
+import { FederatedCohort, FederatedMemoryShare, PrivacyBudgetAggregator, SecureChannel, SecureAggregation, PrivacyAudit, PrivacyBudgetEnforcer, FederatedMemoryIndex, FEDERATED_TOOLS } from '../federated/FederatedCore';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -87,6 +88,7 @@ export class MCPServer {
       ...MULTIMODAL_TOOLS,
       ...STREAMING_TOOLS,
       ...PLAYBACK_TOOLS,
+      ...FEDERATED_TOOLS,
       {
         name: 'EpisodicStore.record',
         description: 'Append-only timestamped episode ledger with importance scoring.',
@@ -655,6 +657,43 @@ export class MCPServer {
           c.recordDiff();
           const sess = c.end();
           return { content: [{ type: 'text', text: JSON.stringify({ session: sess }) }] };
+        }
+
+        // V5656+: Federated Memory tools
+        case 'FederatedCohort.create': {
+          const c = new FederatedCohort();
+          const cohort = c.create(String(args.name ?? 'cli-cohort'), String(args.owner ?? 'agent-cli'));
+          return { content: [{ type: 'text', text: JSON.stringify({ cohortId: cohort.id, members: cohort.members.size }) }] };
+        }
+
+        case 'FederatedMemoryShare.share': {
+          const c = new FederatedCohort();
+          const s = new FederatedMemoryShare();
+          const a = new PrivacyAudit();
+          const cohort = c.create(String(args.cohortId?.slice(0, 6) ?? 'cohort-x'), String(args.owner ?? 'agent-cli'));
+          const r = s.share(String(args.owner ?? 'agent-cli'), cohort.id, String(args.content ?? 'hello'), 0.1, c, a);
+          return { content: [{ type: 'text', text: JSON.stringify({ ok: r.ok, shareId: r.shareId, auditCount: a.count() }) }] };
+        }
+
+        case 'SecureChannel.send': {
+          const sc = new SecureChannel();
+          const { channelId } = sc.open(String(args.from ?? 'a'), String(args.to ?? 'b'));
+          const send = sc.send(String(args.from ?? 'a'), String(args.to ?? 'b'), String(args.text ?? 'hello'));
+          return { content: [{ type: 'text', text: JSON.stringify({ channelId, ok: send.ok, messageId: send.messageId }) }] };
+        }
+
+        case 'PrivacyAudit.recent': {
+          const a = new PrivacyAudit();
+          a.record({ kind: 'share', agentId: 'cli', cohortId: 'cohort-x' });
+          a.record({ kind: 'read', agentId: 'cli', cohortId: 'cohort-x' });
+          return { content: [{ type: 'text', text: JSON.stringify({ count: a.count(), recent: a.recent(Number(args.n ?? 5)) }) }] };
+        }
+
+        case 'PrivacyBudgetAggregator.summary': {
+          const b = new PrivacyBudgetAggregator();
+          b.setBudget('cli', 10);
+          b.consume('cli', 3);
+          return { content: [{ type: 'text', text: JSON.stringify({ stats: b.stats() }) }] };
         }
 
         default:
