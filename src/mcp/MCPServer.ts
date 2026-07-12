@@ -14,6 +14,7 @@ import { LongTermMemoryManager, ShortTermMemory, WorkingMemory, AssociativeMemor
 import { MemoryDashboard, MemoryConfig, MemoryAudit, MemoryProfile, MemoryMigration, MemoryReport, MemoryBenchmark, MemoryMasterIndex, MemoryIntegrationIndex } from '../engines/AgentMemoryIntegration';
 import { VectorEmbedder, CosineSim, DistanceMetric, VectorNormalizer, HNSWIndex, PQCompressor, HybridSearcher, VectorCache, TokenBag, VectorMigrator, MemVectorCoreIndex } from '../engines/MemVectorCore';
 import { LettaImportParser, LettaExporter, MemoryMigrator, FormatConverter, MigrationDiffEngine, MIGRATION_TOOLS } from '../migration/MigrationEngine';
+import { ImageEmbedder, AudioEmbed, ImageSearch, ImageCaption, MediaClassifier, MediaMetadataExtractor, MultimodalMerge, MediaTranscript, MULTIMODAL_TOOLS, MultimodalMemoryStore } from '../multimodal/MultimodalCore';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -81,6 +82,7 @@ export class MCPServer {
   private _registerTools(): void {
     this._tools = [
       ...MIGRATION_TOOLS,
+      ...MULTIMODAL_TOOLS,
       {
         name: 'EpisodicStore.record',
         description: 'Append-only timestamped episode ledger with importance scoring.',
@@ -467,6 +469,103 @@ export class MCPServer {
           } catch (err) {
             return { content: [{ type: 'text', text: JSON.stringify({ error: String(err) }) }] };
           }
+        }
+
+        case 'Multimodal.addImage': {
+          const e = new ImageEmbedder();
+          const pixels = args.pixels ? JSON.parse(String(args.pixels)) as number[] : [];
+          const features = pixels.length > 0
+            ? e.embed(Number(args.width ?? 0), Number(args.height ?? 0), pixels)
+            : e.embedFromURI(String(args.uri));
+          return { content: [{ type: 'text', text: JSON.stringify({
+            hash: features.hash,
+            width: features.width,
+            height: features.height,
+            embedding_dim: features.embedding.length,
+            meanColor: features.meanColor,
+          }) }] };
+        }
+
+        case 'Multimodal.searchImages': {
+          const embedding = JSON.parse(String(args.embedding)) as number[];
+          const e = new ImageEmbedder();
+          const features = {
+            width: 0, height: 0, channels: 3,
+            meanColor: [0, 0, 0] as [number, number, number],
+            hash: 'q',
+            embedding,
+          };
+          const search = new ImageSearch(e);
+          const results = search.search(features, Number(args.topK ?? 5));
+          return { content: [{ type: 'text', text: JSON.stringify(results) }] };
+        }
+
+        case 'Multimodal.caption': {
+          const e = new ImageEmbedder();
+          const features = e.embedFromURI(String(args.uri));
+          features.width = Number(args.width ?? 0);
+          features.height = Number(args.height ?? 0);
+          const caption = new ImageCaption().caption(features, args.context as string | undefined);
+          return { content: [{ type: 'text', text: JSON.stringify({ caption }) }] };
+        }
+
+        case 'Multimodal.transcribe': {
+          const samples = JSON.parse(String(args.samples)) as number[];
+          const audio = new AudioEmbed();
+          const features = audio.embed(samples, Number(args.sampleRate ?? 16000));
+          const text = audio.transcribe(samples, Number(args.sampleRate ?? 16000));
+          const segments = new MediaTranscript().transcribe(samples, Number(args.sampleRate ?? 16000));
+          return { content: [{ type: 'text', text: JSON.stringify({
+            transcript: text,
+            duration: features.duration,
+            rms: features.rms,
+            segments: segments.length,
+          }) }] };
+        }
+
+        case 'Multimodal.classify': {
+          const cls = new MediaClassifier();
+          const type = cls.classify(String(args.uri));
+          const confidence = cls.confidence(String(args.uri));
+          return { content: [{ type: 'text', text: JSON.stringify({ type, confidence }) }] };
+        }
+
+        case 'Multimodal.merge': {
+          const merger = new MultimodalMerge(128);
+          const text = args.text as string | undefined;
+          const imageEmb = args.imageEmbedding ? JSON.parse(String(args.imageEmbedding)) as number[] : undefined;
+          const audioEmb = args.audioEmbedding ? JSON.parse(String(args.audioEmbedding)) as number[] : undefined;
+          const merged = merger.merge({
+            text,
+            image: imageEmb ? {
+              width: 0, height: 0, channels: 3,
+              meanColor: [0, 0, 0], hash: 'q', embedding: imageEmb,
+            } : undefined,
+            audio: audioEmb ? {
+              duration: 0, sampleRate: 16000, channels: 1,
+              peak: 0, rms: 0, fingerprint: 'q', embedding: audioEmb,
+            } : undefined,
+          });
+          return { content: [{ type: 'text', text: JSON.stringify({
+            merged_dim: merged.mergedEmbedding.length,
+            has_text: !!text,
+            has_image: !!imageEmb,
+            has_audio: !!audioEmb,
+          }) }] };
+        }
+
+        case 'Multimodal.metadata': {
+          const meta = new MediaMetadataExtractor().extract(String(args.uri));
+          return { content: [{ type: 'text', text: JSON.stringify(meta) }] };
+        }
+
+        case 'Multimodal.retrieve': {
+          const store = new MultimodalMemoryStore();
+          const hits = store.searchImagesByEmbedding(
+            args.text ? new Array(64).fill(0).map((_, i) => Math.sin(i + (args.text as string).length)) : [],
+            Number(args.topK ?? 5),
+          );
+          return { content: [{ type: 'text', text: JSON.stringify(hits) }] };
         }
 
         default:
