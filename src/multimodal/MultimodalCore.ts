@@ -482,9 +482,10 @@ export class MultimodalMerge {
 
   merge(parts: { text?: string; image?: ImageFeatures; audio?: AudioFeatures }): MergedFeatures {
     const components: number[][] = [];
+    const componentDim = Math.floor(this._dim / 3);
     if (parts.text) {
       // Hash text into vector
-      const v = new Array(this._dim / 3).fill(0);
+      const v = new Array(componentDim).fill(0);
       for (let i = 0; i < parts.text.length; i++) {
         const idx = i % v.length;
         v[idx] += parts.text.charCodeAt(i);
@@ -492,17 +493,19 @@ export class MultimodalMerge {
       components.push(this._normalize(v));
     }
     if (parts.image) {
-      const v = this._truncate(parts.image.embedding, this._dim / 3);
+      const v = this._truncate(parts.image.embedding, componentDim);
       components.push(this._normalize(v));
     }
     if (parts.audio) {
-      const v = this._truncate(parts.audio.embedding, this._dim / 3);
+      const v = this._truncate(parts.audio.embedding, componentDim);
       components.push(this._normalize(v));
     }
     const mergedEmbedding = new Array(this._dim).fill(0);
-    for (const c of components) {
-      for (let i = 0; i < c.length; i++) {
-        mergedEmbedding[i] += c[i] / components.length;
+    if (components.length > 0) {
+      for (const c of components) {
+        for (let i = 0; i < c.length; i++) {
+          mergedEmbedding[i] += c[i] / components.length;
+        }
       }
     }
     return {
