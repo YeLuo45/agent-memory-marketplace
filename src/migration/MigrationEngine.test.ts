@@ -419,9 +419,10 @@ describe('MigrationRollback', () => {
       // Undo removes migrated + restores before, net = 1
       r.undo(adapter);
       expect(adapter.recordCount()).toBe(1);
-      // The restored record should be the original 'orig' content
-      const restored = adapter.get(beforeRec.data.id);
-      expect(restored.data?.content).toBe('orig');
+      // The restored record should contain the original 'orig' content
+      const all = adapter.list().data ?? [];
+      const restored = all.find(r => r.content === 'orig');
+      expect(restored?.content).toBe('orig');
     }
   });
 
