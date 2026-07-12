@@ -121,6 +121,28 @@ StreamProducer.flush    — Drain queued events to consumers
 StreamConsumer.aggregate — Aggregate consumed events by topic
 ```
 
+### Batch 9/9 — Memory Playback UI (V5641-V5655) — 7 engines (NEW · 2026-07-12)
+
+| Engine | Layer | Purpose |
+|--------|-------|---------|
+| `MemorySnapshotter` | playback | Captures a value-based snapshot of a memory store with deep clone |
+| `TimelineView` | playback | Flat chronological list of all events with topic/kind/since filters |
+| `TreeVisualizer` | playback | Hierarchical view of memory store contents with weight summing |
+| `DiffEngine` | playback | Diffs two snapshots by content (added/removed/modified/unchanged) |
+| `StepReplay` | playback | Time-travel replay with cursor + jumpTo + interval control |
+| `ReplayCoordinator` | playback | Orchestrates snapshotter + timeline + diff + stepReplay sessions |
+| `PlaybackMasterIndex` | playback | Batch 9/9 index |
+
+### 5 new MCP tools (Playback.* — 36 → 41 total)
+
+```
+MemorySnapshotter.capture  — Capture a snapshot of a memory store
+TimelineView.recent       — Get most recent N timeline entries
+StepReplay.start          — Start a step replay cursor
+StepReplay.next           — Advance to next step
+ReplayCoordinator.summary — Get current replay session summary
+```
+
 ## UI Features
 
 - **🔍 Search** — by name, description, or use case (live filter)
@@ -162,6 +184,10 @@ node bin/amm.js streaming list
 node bin/amm.js streaming demo
 node bin/amm.js streaming produce memory.create create
 node bin/amm.js streaming drain
+node bin/amm.js playback list
+node bin/amm.js playback demo
+node bin/amm.js playback snapshot my-snap
+node bin/amm.js playback timeline 5
 node bin/amm.js compat
 
 # MCP server mode (stdio) — wire up to Claude Code MCP config
@@ -192,6 +218,32 @@ Streaming demo:
 
 Wired into MCP via 4 new `Streaming.*` tools (32 → 36 total). Same MCP server, same JSON-RPC stdio — `node bin/amm.js mcp call tools/call '{"name":"StreamProducer.emit","arguments":{"topic":"memory.create","kind":"create"}}'`.
 
+## Memory Playback (V5641+)
+
+Time-travel forensic debugger on top of streaming events. Snapshot a memory store, view changes as a timeline, diff two snapshots, replay events step-by-step:
+
+```bash
+$ node bin/amm.mjs playback demo
+Playback demo:
+  snapshots       : 2
+  timeline events : 2
+  diff summary    : {"additions":1,"deletions":0,"modifications":1,"unchanged":1,"total":3}
+  replay steps    : 2
+  first replay    : {"seq":1,"ts":...,"topic":"demo","kind":"create","payload":{"phase":"init"}}
+```
+
+| Engine | Use case |
+|--------|----------|
+| `MemorySnapshotter` | Point-in-time value snapshots with deep clone — useful before/after memory migrations |
+| `TimelineView` | Flat list of all events with topic/kind/since filters — quick filtering UI for high-volume logs |
+| `TreeVisualizer` | Hierarchical view with weight summing — visualize memory store contents as a tree |
+| `DiffEngine` | Content-based diff: added / removed / modified / unchanged — works on snapshots OR event arrays |
+| `StepReplay` | Cursor-based step replay with `next()` / `jumpTo(seq)` / `pause()` / `start()` |
+| `ReplayCoordinator` | Multi-session coordinator with `start()` / `recordSnapshot()` / `recordEvents(n)` / `recordDiff()` / `end()` |
+| `PlaybackMasterIndex` | Batch 9/9 master index — `count()===7`, `list()` returns all 7 |
+
+Wired into MCP via 5 new `Playback.*` tools (36 → 41 total). Example: `node bin/amm.js mcp call tools/call '{"name":"StepReplay.next","arguments":{}}'`.
+
 
 ## Architecture
 
@@ -204,6 +256,7 @@ agent-memory-marketplace/
 │   ├── mcp/                           ← V5576-V5595 (MCPServer + OpenMemoryAdapter)
 │   ├── migration/                     ← V5596-V5610 (15 migration engines + tests)
 │   ├── streaming/                     ← V5626-V5640 (5 streaming engines + tests)
+│   ├── playback/                      ← V5641-V5655 (7 playback engines + tests)
 │   ├── data/                          ← memoryEngines + liveDemos + i18n
 │   ├── styles/themes.css               ← 4 themes with CSS custom properties
 │   ├── runtime.ts                      ← 50-LOC zero-dep React-like runtime
@@ -242,14 +295,15 @@ $ npx vitest run
  ✓ src/multimodal/MultimodalCore.test.ts (37 tests)
  ✓ src/migration/MigrationEngine.test.ts (56 tests)
  ✓ src/streaming/StreamingCore.test.ts (35 tests)
+ ✓ src/playback/PlaybackCore.test.ts (39 tests)
  ✓ src/mcp/MCPServer.test.ts (23 tests)
 
- Test Files  10 passed (10)
-      Tests  242 passed (242)
+ Test Files  11 passed (11)
+      Tests  281 passed (281)
    Duration  ~1.5s
 ```
 
-**242/242 tests pass · 100% · ~1.5s**.
+**281/281 tests pass · 100% · ~1.5s**.
 
 ## Relationship to `agent-skills-marketplace`
 
@@ -259,10 +313,11 @@ This project is a **sister** to [`agent-skills-marketplace`](https://yeluo45.git
 Skills (what an agent KNOWS)        Memory (what an agent REMEMBERS)
 ─────────────────────────────────  ─────────────────────────────────
 agent-skills-marketplace           agent-memory-marketplace  ← you are here
-  11 engines · 11 tests              79 engines · 242 tests
+  11 engines · 11 tests              90 engines · 281 tests
   "Web Search", "Code Review",       "EpisodicStore", "ForgettingEngine",
-   "TencentDB Memory"                 "MemoryHierarchy", "EventBus", ...
-                                     MCP: 36 tools (live streaming)
+   "TencentDB Memory"                 "MemoryHierarchy", "EventBus",
+                                     "MemorySnapshotter", ...
+                                     MCP: 41 tools (playback + streaming)
 ```
 
 They share the same React-free theme system, layout patterns, GitHub Actions → Pages pipeline. Skills get installed and produce memory events; memory keeps them consistent across sessions.

@@ -16,6 +16,7 @@ import { VectorEmbedder, CosineSim, DistanceMetric, VectorNormalizer, HNSWIndex,
 import { LettaImportParser, LettaExporter, MemoryMigrator, FormatConverter, MigrationDiffEngine, MIGRATION_TOOLS } from '../migration/MigrationEngine';
 import { ImageEmbedder, AudioEmbed, ImageSearch, ImageCaption, MediaClassifier, MediaMetadataExtractor, MultimodalMerge, MediaTranscript, MULTIMODAL_TOOLS, MultimodalMemoryStore } from '../multimodal/MultimodalCore';
 import { EventBus, MemoryWatcher, StreamProducer, StreamConsumer, StreamingMasterIndex, STREAMING_TOOLS } from '../streaming/StreamingCore';
+import { MemorySnapshotter, TimelineView, StepReplay, ReplayCoordinator, PlaybackMasterIndex, PLAYBACK_TOOLS } from '../playback/PlaybackCore';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -85,6 +86,7 @@ export class MCPServer {
       ...MIGRATION_TOOLS,
       ...MULTIMODAL_TOOLS,
       ...STREAMING_TOOLS,
+      ...PLAYBACK_TOOLS,
       {
         name: 'EpisodicStore.record',
         description: 'Append-only timestamped episode ledger with importance scoring.',
@@ -604,6 +606,55 @@ export class MCPServer {
           p.flush();
           const agg = c.aggregate();
           return { content: [{ type: 'text', text: JSON.stringify({ aggregated: agg }) }] };
+        }
+
+        // V5641+: Memory Playback tools
+        case 'MemorySnapshotter.capture': {
+          const s = new MemorySnapshotter();
+          const snap = s.capture(String(args.label ?? 'cli'), String(args.storeId ?? 'demo'), [
+            { key: 'k1', value: { cli: true, ts: Date.now() } },
+          ]);
+          return { content: [{ type: 'text', text: JSON.stringify({ snapId: snap.id, size: snap.size }) }] };
+        }
+
+        case 'TimelineView.recent': {
+          const v = new TimelineView();
+          v.record([
+            { topic: 'cli', kind: 'create', ts: Date.now() - 100, payload: { a: 1 } },
+            { topic: 'cli', kind: 'update', ts: Date.now() - 50, payload: { a: 2 } },
+          ]);
+          const recent = v.recent(Number(args.n ?? 5));
+          return { content: [{ type: 'text', text: JSON.stringify({ count: v.count(), recent }) }] };
+        }
+
+        case 'StepReplay.start': {
+          const r = new StepReplay();
+          r.append('event', { phase: 'init', at: Date.now() });
+          r.start();
+          const first = r.next();
+          return { content: [{ type: 'text', text: JSON.stringify({ running: r.status().running, first }) }] };
+        }
+
+        case 'StepReplay.next': {
+          const r = new StepReplay();
+          r.append('event', { a: 1 });
+          r.append('event', { a: 2 });
+          r.append('event', { a: 3 });
+          r.start();
+          const n1 = r.next();
+          const n2 = r.next();
+          return { content: [{ type: 'text', text: JSON.stringify({ step1: n1, step2: n2, remaining: r.status().remaining }) }] };
+        }
+
+        case 'ReplayCoordinator.summary': {
+          const c = new ReplayCoordinator();
+          c.start();
+          c.recordSnapshot();
+          c.recordSnapshot();
+          c.recordEvents(7);
+          c.recordDiff();
+          const sess = c.end();
+          return { content: [{ type: 'text', text: JSON.stringify({ session: sess }) }] };
         }
 
         default:

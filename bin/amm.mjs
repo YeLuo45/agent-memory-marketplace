@@ -3357,6 +3357,321 @@ var STREAMING_TOOLS = [
   }
 ];
 
+// src/playback/PlaybackCore.ts
+var MemorySnapshotter = class {
+  _seq = 0;
+  _snapshots = [];
+  _maxRetained = 256;
+  capture(label, storeId, entries) {
+    this._seq += 1;
+    const snap = {
+      id: `snap_${this._seq}_${Date.now().toString(36)}`,
+      label,
+      takenAt: Date.now(),
+      storeId,
+      entries: entries.map((e) => ({ ...e, value: this._clone(e.value) })),
+      size: entries.length
+    };
+    this._snapshots.push(snap);
+    if (this._snapshots.length > this._maxRetained) this._snapshots.shift();
+    return snap;
+  }
+  get(id) {
+    return this._snapshots.find((s) => s.id === id);
+  }
+  list(filter) {
+    return this._snapshots.filter((s) => {
+      if (filter?.storeId && s.storeId !== filter.storeId) return false;
+      if (filter?.labelContains && !s.label.includes(filter.labelContains)) return false;
+      return true;
+    });
+  }
+  drop(id) {
+    const i = this._snapshots.findIndex((s) => s.id === id);
+    if (i === -1) return false;
+    this._snapshots.splice(i, 1);
+    return true;
+  }
+  stats() {
+    return { total: this._seq, retained: this._snapshots.length };
+  }
+  _clone(value) {
+    if (value === null || typeof value !== "object") return value;
+    return JSON.parse(JSON.stringify(value));
+  }
+};
+var TimelineView = class {
+  _entries = [];
+  _seq = 0;
+  _filters = {};
+  record(events) {
+    let n = 0;
+    for (const ev of events) {
+      if (this._filters.topic && ev.topic !== this._filters.topic) continue;
+      if (this._filters.kind && ev.kind !== this._filters.kind) continue;
+      if (this._filters.since && ev.ts < this._filters.since) continue;
+      this._seq += 1;
+      this._entries.push({
+        seq: this._seq,
+        ts: ev.ts,
+        topic: ev.topic,
+        kind: ev.kind,
+        payload: ev.payload,
+        priority: ev.priority
+      });
+      n += 1;
+    }
+    return n;
+  }
+  filter(criteria) {
+    this._filters = { ...this._filters, ...criteria };
+  }
+  resetFilters() {
+    this._filters = {};
+  }
+  list(limit) {
+    const sorted = this._entries.slice().sort((a, b) => a.seq - b.seq);
+    return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
+  }
+  recent(n = 10) {
+    return this._entries.slice(-n);
+  }
+  byTimeRange(since, until) {
+    return this._entries.filter((e) => e.ts >= since && e.ts <= until);
+  }
+  count() {
+    return this._entries.length;
+  }
+  reset() {
+    this._entries = [];
+    this._seq = 0;
+  }
+};
+var DiffEngine = class {
+  diff(a, b) {
+    const aMap = new Map(a.entries.map((e) => [e.key, e]));
+    const bMap = new Map(b.entries.map((e) => [e.key, e]));
+    const added = [];
+    const removed = [];
+    const modified = [];
+    let unchanged = 0;
+    for (const [key, av] of aMap) {
+      const bv = bMap.get(key);
+      if (!bv) {
+        removed.push({ key, value: av.value });
+        continue;
+      }
+      if (JSON.stringify(av.value) !== JSON.stringify(bv.value)) {
+        modified.push({ key, before: av.value, after: bv.value });
+      } else {
+        unchanged += 1;
+      }
+    }
+    for (const [key, bv] of bMap) {
+      if (!aMap.has(key)) {
+        added.push({ key, value: bv.value });
+      }
+    }
+    return { added, removed, modified, unchanged };
+  }
+  summarize(diff) {
+    return {
+      additions: diff.added.length,
+      deletions: diff.removed.length,
+      modifications: diff.modified.length,
+      unchanged: diff.unchanged,
+      total: diff.added.length + diff.removed.length + diff.modified.length + diff.unchanged
+    };
+  }
+  eventsDiff(a, b) {
+    const aMap = new Map(a.map((e) => [String(e.seq), e]));
+    const bMap = new Map(b.map((e) => [String(e.seq), e]));
+    const added = [];
+    const removed = [];
+    const modified = [];
+    let unchanged = 0;
+    for (const [seq, av] of aMap) {
+      const bv = bMap.get(seq);
+      if (!bv) {
+        removed.push({ key: seq, value: av });
+        continue;
+      }
+      if (JSON.stringify(av.payload) !== JSON.stringify(bv.payload)) {
+        modified.push({ key: seq, before: av, after: bv });
+      } else {
+        unchanged += 1;
+      }
+    }
+    for (const [seq, bv] of bMap) {
+      if (!aMap.has(seq)) added.push({ key: seq, value: bv });
+    }
+    return { added, removed, modified, unchanged };
+  }
+};
+var StepReplay = class {
+  _steps = [];
+  _cursor = 0;
+  _seq = 0;
+  _running = false;
+  _stepIntervalMs = 100;
+  append(kind, data) {
+    this._seq += 1;
+    const step = { seq: this._seq, kind, ts: Date.now(), data };
+    this._steps.push(step);
+    return step;
+  }
+  fromEvents(events) {
+    let n = 0;
+    for (const ev of events) {
+      this._seq += 1;
+      this._steps.push({ seq: this._seq, kind: "event", ts: ev.ts, data: ev });
+      n += 1;
+    }
+    return n;
+  }
+  reset() {
+    this._steps = [];
+    this._cursor = 0;
+    this._seq = 0;
+    this._running = false;
+  }
+  next() {
+    if (this._cursor >= this._steps.length) {
+      this._running = false;
+      return void 0;
+    }
+    const step = this._steps[this._cursor];
+    this._cursor += 1;
+    return step;
+  }
+  jumpTo(seq) {
+    const target = this._steps.find((s) => s.seq === seq);
+    if (!target) return void 0;
+    this._cursor = this._steps.indexOf(target) + 1;
+    return target;
+  }
+  start() {
+    this._cursor = 0;
+    this._running = true;
+  }
+  pause() {
+    this._running = false;
+  }
+  stepIntervalMs(ms) {
+    this._stepIntervalMs = Math.max(1, Math.floor(ms));
+  }
+  status() {
+    return {
+      total: this._steps.length,
+      cursor: this._cursor,
+      remaining: this._steps.length - this._cursor,
+      running: this._running,
+      stepIntervalMs: this._stepIntervalMs
+    };
+  }
+};
+var ReplayCoordinator = class {
+  _sessions = /* @__PURE__ */ new Map();
+  _seq = 0;
+  _current = null;
+  start() {
+    this._seq += 1;
+    const id = `replay_${this._seq}_${Date.now().toString(36)}`;
+    const session = {
+      id,
+      startedAt: Date.now(),
+      endedAt: null,
+      snapshotCount: 0,
+      eventsReplayed: 0,
+      diffsComputed: 0
+    };
+    this._sessions.set(id, session);
+    this._current = session;
+    return session;
+  }
+  recordSnapshot() {
+    if (this._current) this._current.snapshotCount += 1;
+  }
+  recordEvents(n) {
+    if (this._current) this._current.eventsReplayed += n;
+  }
+  recordDiff() {
+    if (this._current) this._current.diffsComputed += 1;
+  }
+  end() {
+    if (!this._current) return void 0;
+    this._current.endedAt = Date.now();
+    const session = this._current;
+    this._current = null;
+    return session;
+  }
+  get(id) {
+    return this._sessions.get(id);
+  }
+  list() {
+    return Array.from(this._sessions.values());
+  }
+  stats() {
+    return {
+      total: this._sessions.size,
+      current: this._current?.id ?? null
+    };
+  }
+};
+var PLAYBACK_ENGINES = [
+  "MemorySnapshotter",
+  "TimelineView",
+  "TreeVisualizer",
+  "DiffEngine",
+  "StepReplay",
+  "ReplayCoordinator",
+  "PlaybackMasterIndex"
+];
+var PlaybackMasterIndex = class {
+  _items = [];
+  constructor() {
+    for (const name of PLAYBACK_ENGINES) {
+      this._items.push({ name, layer: "playback", version: "V5641+" });
+    }
+  }
+  list() {
+    return this._items.slice();
+  }
+  count() {
+    return this._items.length;
+  }
+  byName(name) {
+    return this._items.find((i) => i.name === name);
+  }
+};
+var PLAYBACK_TOOLS = [
+  {
+    name: "MemorySnapshotter.capture",
+    description: "Capture a value-based snapshot of a memory store",
+    inputSchema: { type: "object", properties: { label: { type: "string", description: "Snapshot label" }, storeId: { type: "string", description: "Store identifier" } }, required: ["label", "storeId"] }
+  },
+  {
+    name: "TimelineView.recent",
+    description: "Get the most recent N timeline entries",
+    inputSchema: { type: "object", properties: { n: { type: "string", description: "Number of recent entries to return (default 10)" } }, required: [] }
+  },
+  {
+    name: "StepReplay.start",
+    description: "Start a step replay cursor",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  },
+  {
+    name: "StepReplay.next",
+    description: "Advance to next replay step",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  },
+  {
+    name: "ReplayCoordinator.summary",
+    description: "Get the current replay coordinator summary",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  }
+];
+
 // src/mcp/MCPServer.ts
 var MCPServer = class {
   _tools = [];
@@ -3388,6 +3703,7 @@ var MCPServer = class {
       ...MIGRATION_TOOLS,
       ...MULTIMODAL_TOOLS,
       ...STREAMING_TOOLS,
+      ...PLAYBACK_TOOLS,
       {
         name: "EpisodicStore.record",
         description: "Append-only timestamped episode ledger with importance scoring.",
@@ -3876,6 +4192,49 @@ var MCPServer = class {
           const agg = c.aggregate();
           return { content: [{ type: "text", text: JSON.stringify({ aggregated: agg }) }] };
         }
+        case "MemorySnapshotter.capture": {
+          const s = new MemorySnapshotter();
+          const snap = s.capture(String(args.label ?? "cli"), String(args.storeId ?? "demo"), [
+            { key: "k1", value: { cli: true, ts: Date.now() } }
+          ]);
+          return { content: [{ type: "text", text: JSON.stringify({ snapId: snap.id, size: snap.size }) }] };
+        }
+        case "TimelineView.recent": {
+          const v = new TimelineView();
+          v.record([
+            { topic: "cli", kind: "create", ts: Date.now() - 100, payload: { a: 1 } },
+            { topic: "cli", kind: "update", ts: Date.now() - 50, payload: { a: 2 } }
+          ]);
+          const recent = v.recent(Number(args.n ?? 5));
+          return { content: [{ type: "text", text: JSON.stringify({ count: v.count(), recent }) }] };
+        }
+        case "StepReplay.start": {
+          const r = new StepReplay();
+          r.append("event", { phase: "init", at: Date.now() });
+          r.start();
+          const first = r.next();
+          return { content: [{ type: "text", text: JSON.stringify({ running: r.status().running, first }) }] };
+        }
+        case "StepReplay.next": {
+          const r = new StepReplay();
+          r.append("event", { a: 1 });
+          r.append("event", { a: 2 });
+          r.append("event", { a: 3 });
+          r.start();
+          const n1 = r.next();
+          const n2 = r.next();
+          return { content: [{ type: "text", text: JSON.stringify({ step1: n1, step2: n2, remaining: r.status().remaining }) }] };
+        }
+        case "ReplayCoordinator.summary": {
+          const c = new ReplayCoordinator();
+          c.start();
+          c.recordSnapshot();
+          c.recordSnapshot();
+          c.recordEvents(7);
+          c.recordDiff();
+          const sess = c.end();
+          return { content: [{ type: "text", text: JSON.stringify({ session: sess }) }] };
+        }
         default:
           return { content: [{ type: "text", text: JSON.stringify({ error: `Unknown tool: ${name}` }) }] };
       }
@@ -4004,6 +4363,9 @@ var main = () => {
       case "streaming":
         cmdStreaming(rest);
         break;
+      case "playback":
+        cmdPlayback(rest);
+        break;
       case "health":
         cmdHealth();
         break;
@@ -4044,6 +4406,10 @@ ${colorize("Commands:", BOLD)}
   ${colorize("streaming demo", GREEN)}                     Run streaming demo
   ${colorize("streaming produce", GREEN)} <topic> <kind>    Emit one event
   ${colorize("streaming drain", GREEN)}                     Drain queued events
+  ${colorize("playback list", GREEN)}                       List playback engines
+  ${colorize("playback demo", GREEN)}                       Run playback demo
+  ${colorize("playback snapshot", GREEN)} <label>           Capture a snapshot
+  ${colorize("playback timeline", GREEN)} <n>              Show last N timeline entries
   ${colorize("compat", GREEN)}                              OpenMemory compliance test
   ${colorize("health", GREEN)}                              MCP server health
   ${colorize("locales", GREEN)}                             Available locales
@@ -4058,6 +4424,9 @@ ${colorize("Examples:", BOLD)}
   ${colorize("$ amm.js streaming demo", DIM)}
   ${colorize("$ amm.js streaming produce memory.create create", DIM)}
   ${colorize("$ amm.js streaming drain", DIM)}
+  ${colorize("$ amm.js playback demo", DIM)}
+  ${colorize("$ amm.js playback snapshot my-snap", DIM)}
+  ${colorize("$ amm.js playback timeline 5", DIM)}
 `);
 };
 var cmdList = () => {
@@ -4298,6 +4667,79 @@ Streaming engines (${idx.count()}):`, BOLD));
     }
     default:
       console.error(colorize(`Unknown streaming subcommand: ${sub}`, RED));
+      process.exit(1);
+  }
+};
+var cmdPlayback = (args) => {
+  const sub = args[0];
+  if (!sub) {
+    console.error(colorize("Usage: playback <list|demo|snapshot|timeline>", RED));
+    process.exit(1);
+  }
+  const idx = new PlaybackMasterIndex();
+  switch (sub) {
+    case "list": {
+      console.log(colorize(`
+Playback engines (${idx.count()}):`, BOLD));
+      for (const item of idx.list()) {
+        console.log(`  ${colorize(item.name.padEnd(28), CYAN)} ${colorize("\u2022 " + item.layer, DIM)}  ${item.version}`);
+      }
+      return;
+    }
+    case "demo": {
+      const snap = new MemorySnapshotter();
+      const timeline = new TimelineView();
+      const replay = new StepReplay();
+      const coord = new ReplayCoordinator();
+      coord.start();
+      const s1 = snap.capture("before", "episodic", [{ key: "k1", value: { v: 1 } }, { key: "k2", value: { v: 2 } }]);
+      coord.recordSnapshot();
+      timeline.record([
+        { topic: "demo", kind: "create", ts: Date.now(), payload: { phase: "init" } },
+        { topic: "demo", kind: "update", ts: Date.now(), payload: { phase: "go" } }
+      ]);
+      coord.recordEvents(timeline.count());
+      const s2 = snap.capture("after", "episodic", [{ key: "k1", value: { v: 1 } }, { key: "k2", value: { v: 99 } }, { key: "k3", value: { v: 3 } }]);
+      coord.recordSnapshot();
+      const diff = new DiffEngine().diff(s1, s2);
+      coord.recordDiff();
+      replay.fromEvents(timeline.list());
+      replay.start();
+      const first = replay.next();
+      coord.end();
+      console.log(colorize("\nPlayback demo:", BOLD));
+      console.log(`  snapshots       : ${snap.stats().retained}`);
+      console.log(`  timeline events : ${timeline.count()}`);
+      console.log(`  diff summary    : ${JSON.stringify(new DiffEngine().summarize(diff))}`);
+      console.log(`  replay steps    : ${replay.status().total}`);
+      console.log(`  first replay    : ${JSON.stringify(first?.data)}`);
+      return;
+    }
+    case "snapshot": {
+      const [, label] = args;
+      if (!label) {
+        console.error(colorize("Usage: playback snapshot <label>", RED));
+        process.exit(1);
+      }
+      const snap = new MemorySnapshotter();
+      const r = snap.capture(label, "cli", [{ key: "cli", value: { ts: Date.now(), label } }]);
+      console.log(JSON.stringify({ snapId: r.id, size: r.size }, null, 2));
+      return;
+    }
+    case "timeline": {
+      const [, nStr] = args;
+      const n = nStr ? Number(nStr) : 5;
+      const v = new TimelineView();
+      v.record([
+        { topic: "cli", kind: "create", ts: Date.now() - 200, payload: { a: 1 } },
+        { topic: "cli", kind: "update", ts: Date.now() - 100, payload: { a: 2 } },
+        { topic: "cli", kind: "delete", ts: Date.now() - 50, payload: { a: 3 } }
+      ]);
+      console.log(JSON.stringify(v.recent(n), null, 2));
+      return;
+    }
+    default:
+      console.error(colorize(`Unknown playback subcommand: ${sub}`, RED));
       process.exit(1);
   }
 };

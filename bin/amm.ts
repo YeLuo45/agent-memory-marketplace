@@ -22,6 +22,10 @@
 //   streaming demo                      Run streaming demo (bus → watcher → producer → consumer)
 //   streaming produce <topic> <kind>    Emit one event
 //   streaming drain                     Drain a producer, print events
+//   playback list                       List playback engines
+//   playback demo                       Run playback demo (snapshot → timeline → diff → replay)
+//   playback snapshot <label>           Capture a snapshot
+//   playback timeline <n>               Show last N timeline entries
 //   compat                              Run OpenMemory compliance test
 //   health                              MCP server health check
 //   locales                             Show available locales
@@ -31,6 +35,7 @@ import { MEMORY_ENGINES, LAYERS } from '../src/data/memoryEngines';
 import { MCPServer } from '../src/mcp/MCPServer';
 import { OpenMemoryAdapter, OpenMemoryComplianceTest } from '../src/mcp/OpenMemoryAdapter';
 import { EventBus, MemoryWatcher, StreamProducer, StreamConsumer, StreamingMasterIndex } from '../src/streaming/StreamingCore';
+import { MemorySnapshotter, TimelineView, TreeVisualizer, DiffEngine, StepReplay, ReplayCoordinator, PlaybackMasterIndex } from '../src/playback/PlaybackCore';
 
 const BOLD = '\x1b[1m';
 const CYAN = '\x1b[36m';
@@ -73,6 +78,9 @@ const main = (): void => {
       case 'streaming':
         cmdStreaming(rest);
         break;
+      case 'playback':
+        cmdPlayback(rest);
+        break;
       case 'health':
         cmdHealth();
         break;
@@ -114,6 +122,10 @@ ${colorize('Commands:', BOLD)}
   ${colorize('streaming demo', GREEN)}                     Run streaming demo
   ${colorize('streaming produce', GREEN)} <topic> <kind>    Emit one event
   ${colorize('streaming drain', GREEN)}                     Drain queued events
+  ${colorize('playback list', GREEN)}                       List playback engines
+  ${colorize('playback demo', GREEN)}                       Run playback demo
+  ${colorize('playback snapshot', GREEN)} <label>           Capture a snapshot
+  ${colorize('playback timeline', GREEN)} <n>              Show last N timeline entries
   ${colorize('compat', GREEN)}                              OpenMemory compliance test
   ${colorize('health', GREEN)}                              MCP server health
   ${colorize('locales', GREEN)}                             Available locales
@@ -128,6 +140,9 @@ ${colorize('Examples:', BOLD)}
   ${colorize('$ amm.js streaming demo', DIM)}
   ${colorize('$ amm.js streaming produce memory.create create', DIM)}
   ${colorize('$ amm.js streaming drain', DIM)}
+  ${colorize('$ amm.js playback demo', DIM)}
+  ${colorize('$ amm.js playback snapshot my-snap', DIM)}
+  ${colorize('$ amm.js playback timeline 5', DIM)}
 `);
 };
 
@@ -370,6 +385,79 @@ const cmdStreaming = (args: string[]): void => {
     }
     default:
       console.error(colorize(`Unknown streaming subcommand: ${sub}`, RED));
+      process.exit(1);
+  }
+};
+
+const cmdPlayback = (args: string[]): void => {
+  const sub = args[0];
+  if (!sub) {
+    console.error(colorize('Usage: playback <list|demo|snapshot|timeline>', RED));
+    process.exit(1);
+  }
+  const idx = new PlaybackMasterIndex();
+  switch (sub) {
+    case 'list': {
+      console.log(colorize(`\nPlayback engines (${idx.count()}):`, BOLD));
+      for (const item of idx.list()) {
+        console.log(`  ${colorize(item.name.padEnd(28), CYAN)} ${colorize('• ' + item.layer, DIM)}  ${item.version}`);
+      }
+      return;
+    }
+    case 'demo': {
+      const snap = new MemorySnapshotter();
+      const timeline = new TimelineView();
+      const replay = new StepReplay();
+      const coord = new ReplayCoordinator();
+      coord.start();
+      const s1 = snap.capture('before', 'episodic', [{ key: 'k1', value: { v: 1 } }, { key: 'k2', value: { v: 2 } }]);
+      coord.recordSnapshot();
+      timeline.record([
+        { topic: 'demo', kind: 'create', ts: Date.now(), payload: { phase: 'init' } },
+        { topic: 'demo', kind: 'update', ts: Date.now(), payload: { phase: 'go' } },
+      ]);
+      coord.recordEvents(timeline.count());
+      const s2 = snap.capture('after', 'episodic', [{ key: 'k1', value: { v: 1 } }, { key: 'k2', value: { v: 99 } }, { key: 'k3', value: { v: 3 } }]);
+      coord.recordSnapshot();
+      const diff = new DiffEngine().diff(s1, s2);
+      coord.recordDiff();
+      replay.fromEvents(timeline.list());
+      replay.start();
+      const first = replay.next();
+      coord.end();
+      console.log(colorize('\nPlayback demo:', BOLD));
+      console.log(`  snapshots       : ${snap.stats().retained}`);
+      console.log(`  timeline events : ${timeline.count()}`);
+      console.log(`  diff summary    : ${JSON.stringify(new DiffEngine().summarize(diff))}`);
+      console.log(`  replay steps    : ${replay.status().total}`);
+      console.log(`  first replay    : ${JSON.stringify(first?.data)}`);
+      return;
+    }
+    case 'snapshot': {
+      const [, label] = args;
+      if (!label) {
+        console.error(colorize('Usage: playback snapshot <label>', RED));
+        process.exit(1);
+      }
+      const snap = new MemorySnapshotter();
+      const r = snap.capture(label, 'cli', [{ key: 'cli', value: { ts: Date.now(), label } }]);
+      console.log(JSON.stringify({ snapId: r.id, size: r.size }, null, 2));
+      return;
+    }
+    case 'timeline': {
+      const [, nStr] = args;
+      const n = nStr ? Number(nStr) : 5;
+      const v = new TimelineView();
+      v.record([
+        { topic: 'cli', kind: 'create', ts: Date.now() - 200, payload: { a: 1 } },
+        { topic: 'cli', kind: 'update', ts: Date.now() - 100, payload: { a: 2 } },
+        { topic: 'cli', kind: 'delete', ts: Date.now() - 50, payload: { a: 3 } },
+      ]);
+      console.log(JSON.stringify(v.recent(n), null, 2));
+      return;
+    }
+    default:
+      console.error(colorize(`Unknown playback subcommand: ${sub}`, RED));
       process.exit(1);
   }
 };
