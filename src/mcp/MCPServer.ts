@@ -18,6 +18,7 @@ import { ImageEmbedder, AudioEmbed, ImageSearch, ImageCaption, MediaClassifier, 
 import { EventBus, MemoryWatcher, StreamProducer, StreamConsumer, StreamingMasterIndex, STREAMING_TOOLS } from '../streaming/StreamingCore';
 import { MemorySnapshotter, TimelineView, StepReplay, ReplayCoordinator, PlaybackMasterIndex, PLAYBACK_TOOLS } from '../playback/PlaybackCore';
 import { FederatedCohort, FederatedMemoryShare, PrivacyBudgetAggregator, SecureChannel, SecureAggregation, PrivacyAudit, PrivacyBudgetEnforcer, FederatedMemoryIndex, FEDERATED_TOOLS } from '../federated/FederatedCore';
+import { CohortVisualizer, MembershipGraph, PrivacyBudgetChart, AuditExplorer, CohortReport, FederatedCohortsUIMasterIndex, COHORT_UI_TOOLS } from '../federated_ui/FederatedUICore';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -89,6 +90,7 @@ export class MCPServer {
       ...STREAMING_TOOLS,
       ...PLAYBACK_TOOLS,
       ...FEDERATED_TOOLS,
+      ...COHORT_UI_TOOLS,
       {
         name: 'EpisodicStore.record',
         description: 'Append-only timestamped episode ledger with importance scoring.',
@@ -694,6 +696,57 @@ export class MCPServer {
           b.setBudget('cli', 10);
           b.consume('cli', 3);
           return { content: [{ type: 'text', text: JSON.stringify({ stats: b.stats() }) }] };
+        }
+
+        // V5681+: Federated Cohorts UI tools
+        case 'CohortVisualizer.buildTree': {
+          const c = new FederatedCohort();
+          c.create('cli-tree-cohort', 'agent-cli');
+          const v = new CohortVisualizer();
+          const trees = v.buildTree(c);
+          return { content: [{ type: 'text', text: JSON.stringify({ trees: trees.length, members: v.countMembers(trees).totalMembers }) }] };
+        }
+
+        case 'MembershipGraph.stats': {
+          const c = new FederatedCohort();
+          c.create('cli-graph-cohort', 'agent-1');
+          c.addMember(c.list()[0].id, 'agent-2');
+          const g = new MembershipGraph();
+          g.build(c);
+          return { content: [{ type: 'text', text: JSON.stringify(g.stats()) }] };
+        }
+
+        case 'PrivacyBudgetChart.summary': {
+          const b = new PrivacyBudgetAggregator();
+          b.setBudget('cli-1', 10);
+          b.setBudget('cli-2', 10);
+          b.consume('cli-1', 8);
+          b.consume('cli-2', 2);
+          const c = new PrivacyBudgetChart();
+          const points = c.buildStacks(b);
+          return { content: [{ type: 'text', text: JSON.stringify(c.summary(points)) }] };
+        }
+
+        case 'AuditExplorer.byKind': {
+          const a = new PrivacyAudit();
+          a.record({ kind: 'share', agentId: 'cli', cohortId: 'x' });
+          a.record({ kind: 'share', agentId: 'cli', cohortId: 'x' });
+          a.record({ kind: 'deny', agentId: 'stranger', cohortId: 'x', reason: 'no_access' });
+          const e = new AuditExplorer();
+          return { content: [{ type: 'text', text: JSON.stringify(e.byKind(a)) }] };
+        }
+
+        case 'CohortReport.markdown': {
+          const c = new FederatedCohort();
+          c.create('cli', 'agent-1');
+          const a = new PrivacyAudit();
+          a.record({ kind: 'share', agentId: 'cli', cohortId: 'x' });
+          const r = new CohortReport();
+          const md = r.markdown(String(args.title ?? 'CLI Report'), [
+            r.cohortSection(c),
+            r.auditSection(a, 1),
+          ]);
+          return { content: [{ type: 'text', text: JSON.stringify({ markdown_len: md.length, has_title: md.includes('# ') }) }] };
         }
 
         default:

@@ -1604,11 +1604,17 @@ var MEMORY_ENGINES = [
     id: "EpisodicStore",
     name: "EpisodicStore",
     nameZh: "\u4E8B\u4EF6\u8BB0\u5FC6\u5B58\u50A8",
+    nameJa: "\u30A4\u30D9\u30F3\u30C8\u8A18\u61B6\u30B9\u30C8\u30A2",
+    nameKo: "\uC5D0\uD53C\uC18C\uB4DC \uAE30\uC5B5 \uC800\uC7A5\uC18C",
     layer: "episodic",
     description: "Append-only timestamped episode ledger with importance scoring.",
     descriptionZh: "\u4EC5\u8FFD\u52A0\u3001\u5E26\u65F6\u95F4\u6233\u7684\u4E8B\u4EF6\u8D26\u672C\uFF0C\u652F\u6301\u91CD\u8981\u6027\u8BC4\u5206\u3002",
+    descriptionJa: "\u91CD\u8981\u5EA6\u30B9\u30B3\u30A2\u30EA\u30F3\u30B0\u4ED8\u304D\u306E\u8FFD\u8A18\u578B\u30BF\u30A4\u30E0\u30B9\u30BF\u30F3\u30D7\u30A4\u30D9\u30F3\u30C8\u53F0\u5E33\u3002",
+    descriptionKo: "\uC911\uC694\uB3C4 \uC810\uC218\uAC00 \uC788\uB294 \uCD94\uAC00 \uC804\uC6A9 \uD0C0\uC784\uC2A4\uD0EC\uD504 \uC774\uBCA4\uD2B8 \uC6D0\uC7A5.",
     useCase: "Record every user-agent interaction as an episode with importance. Query recent or important episodes to recall past context.",
     useCaseZh: "\u5C06\u7528\u6237\u4E0E\u667A\u80FD\u4F53\u7684\u6BCF\u6B21\u4EA4\u4E92\u4F5C\u4E3A\u4E00\u6761\u4E8B\u4EF6\u8BB0\u5F55\uFF0C\u5E76\u6253\u91CD\u8981\u6027\u6807\u7B7E\u3002\u53EF\u6309\u65F6\u95F4\u6216\u91CD\u8981\u6027\u67E5\u8BE2\u5386\u53F2\u4E0A\u4E0B\u6587\u3002",
+    useCaseJa: "\u30E6\u30FC\u30B6\u30FC\u3068\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8\u306E\u3059\u3079\u3066\u306E\u3084\u308A\u3068\u308A\u3092\u91CD\u8981\u5EA6\u4ED8\u304D\u3067\u30A8\u30D4\u30BD\u30FC\u30C9\u3068\u3057\u3066\u8A18\u9332\u3057\u307E\u3059\u3002\u6700\u8FD1\u307E\u305F\u306F\u91CD\u8981\u306A\u30A8\u30D4\u30BD\u30FC\u30C9\u3067\u904E\u53BB\u306E\u30B3\u30F3\u30C6\u30AD\u30B9\u30C8\u3092\u547C\u3073\u8D77\u3053\u305B\u307E\u3059\u3002",
+    useCaseKo: "\uC0AC\uC6A9\uC790\uC640 \uC5D0\uC774\uC804\uD2B8\uC758 \uBAA8\uB4E0 \uC0C1\uD638\uC791\uC6A9\uC744 \uC911\uC694\uB3C4\uC640 \uD568\uAED8 \uC5D0\uD53C\uC18C\uB4DC\uB85C \uAE30\uB85D\uD569\uB2C8\uB2E4. \uCD5C\uADFC \uB610\uB294 \uC911\uC694\uD55C \uC5D0\uD53C\uC18C\uB4DC\uB97C \uC870\uD68C\uD558\uC5EC \uACFC\uAC70 \uCEE8\uD14D\uC2A4\uD2B8\uB97C \uD68C\uC0C1\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     codePreview: `const store = new EpisodicStore();
 const e1 = store.record('user said hi', 0.7);
 const e2 = store.record('user asked about weather', 0.9);
@@ -1622,11 +1628,17 @@ store.important(0.8);  // by importance score`,
     id: "SemanticIndex",
     name: "SemanticIndex",
     nameZh: "\u8BED\u4E49\u7D22\u5F15",
+    nameJa: "\u30BB\u30DE\u30F3\u30C6\u30A3\u30C3\u30AF\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9",
+    nameKo: "\uC2DC\uB9E8\uD2F1 \uC778\uB371\uC2A4",
     layer: "semantic",
     description: "Tag-based semantic index. Add tags, find by tag, retrieve tag list.",
     descriptionZh: "\u57FA\u4E8E\u6807\u7B7E\u7684\u8BED\u4E49\u7D22\u5F15\uFF0C\u652F\u6301 findByTag \u4E0E\u6807\u7B7E\u67E5\u8BE2\u3002",
+    descriptionJa: "\u30BF\u30B0\u30D9\u30FC\u30B9\u306E\u30BB\u30DE\u30F3\u30C6\u30A3\u30C3\u30AF\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3002\u30BF\u30B0\u8FFD\u52A0\u3001\u30BF\u30B0\u691C\u7D22\u3001\u30BF\u30B0\u4E00\u89A7\u3002",
+    descriptionKo: "\uD0DC\uADF8 \uAE30\uBC18 \uC2DC\uB9E8\uD2F1 \uC778\uB371\uC2A4. \uD0DC\uADF8 \uCD94\uAC00, \uD0DC\uADF8 \uAC80\uC0C9, \uD0DC\uADF8 \uBAA9\uB85D \uC870\uD68C.",
     useCase: "Attach semantic tags to memories (e.g. topic, intent, project), then query by tag without full-text search.",
     useCaseZh: "\u4E3A\u8BB0\u5FC6\u6253\u8BED\u4E49\u6807\u7B7E\uFF08\u8BDD\u9898\u3001\u610F\u56FE\u3001\u9879\u76EE\uFF09\uFF0C\u7136\u540E\u6309\u6807\u7B7E\u67E5\u8BE2\uFF0C\u65E0\u9700\u5168\u6587\u641C\u7D22\u3002",
+    useCaseJa: "\u8A18\u61B6\u306B\u30BB\u30DE\u30F3\u30C6\u30A3\u30C3\u30AF\u30BF\u30B0\uFF08\u30C8\u30D4\u30C3\u30AF\u30FB\u30A4\u30F3\u30C6\u30F3\u30C8\u30FB\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\uFF09\u3092\u4ED8\u4E0E\u3057\u3001\u5168\u6587\u691C\u7D22\u306A\u3057\u3067\u30BF\u30B0\u304B\u3089\u30AF\u30A8\u30EA\u3067\u304D\u307E\u3059\u3002",
+    useCaseKo: "\uAE30\uC5B5\uC5D0 \uC2DC\uB9E8\uD2F1 \uD0DC\uADF8(\uD1A0\uD53D\xB7\uC758\uB3C4\xB7\uD504\uB85C\uC81D\uD2B8)\uB97C \uBD80\uC5EC\uD558\uACE0, \uC804\uCCB4 \uD14D\uC2A4\uD2B8 \uAC80\uC0C9 \uC5C6\uC774 \uD0DC\uADF8\uB85C \uC870\uD68C\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     codePreview: `const idx = new SemanticIndex();
 idx.add('m1', ['python', 'ai']).add('m2', ['python']);
 idx.findByTag('python');  // ['m1', 'm2']`,
@@ -1638,11 +1650,17 @@ idx.findByTag('python');  // ['m1', 'm2']`,
     id: "ProceduralCache",
     name: "ProceduralCache",
     nameZh: "\u7A0B\u5E8F\u7F13\u5B58",
+    nameJa: "\u624B\u7D9A\u304D\u30AD\u30E3\u30C3\u30B7\u30E5",
+    nameKo: "\uC808\uCC28 \uCE90\uC2DC",
     layer: "procedural",
     description: "Procedure step cache with lastUsed tracking for LRU-like access patterns.",
     descriptionZh: "\u5E26 LRU-like lastUsed \u8FFD\u8E2A\u7684\u8FC7\u7A0B\u6B65\u9AA4\u7F13\u5B58\u3002",
+    descriptionJa: "LRU\u30E9\u30A4\u30AF\u306AlastUsed\u8FFD\u8DE1\u4ED8\u304D\u306E\u624B\u7D9A\u304D\u30B9\u30C6\u30C3\u30D7\u30AD\u30E3\u30C3\u30B7\u30E5\u3002",
+    descriptionKo: "LRU \uC2A4\uD0C0\uC77C lastUsed \uCD94\uC801\uC774 \uC788\uB294 \uC808\uCC28 \uB2E8\uACC4 \uCE90\uC2DC.",
     useCase: 'Store multi-step procedures (e.g. "how to reset password") and re-emit them when re-used. Tracks lastUsed to recency-prioritize.',
     useCaseZh: '\u5B58\u50A8\u591A\u6B65\u6D41\u7A0B\uFF08\u5982"\u5982\u4F55\u91CD\u7F6E\u5BC6\u7801"\uFF09\uFF0C\u590D\u7528\u65F6\u518D\u6B21\u8FD4\u56DE\uFF1B\u6309\u6700\u8FD1\u8BBF\u95EE\u4F18\u5148\u3002',
+    useCaseJa: "\u518D\u5229\u7528\u53EF\u80FD\u306A\u30B9\u30AD\u30EB\uFF0F\u624B\u9806\u3092\u8A18\u9332\u3057\u3001\u540C\u3058\u30AF\u30A8\u30EA\u3067\u9AD8\u901F\u306B\u518D\u53D6\u5F97\u3002",
+    useCaseKo: "\uC7AC\uC0AC\uC6A9 \uAC00\uB2A5\uD55C \uC2A4\uD0AC/\uC808\uCC28\uB97C \uAE30\uB85D\uD558\uACE0, \uB3D9\uC77C \uCFFC\uB9AC\uC5D0\uC11C \uBE60\uB974\uAC8C \uC7AC\uC870\uD68C\uD569\uB2C8\uB2E4.",
     codePreview: `const cache = new ProceduralCache();
 cache.store('reset-pwd', ['verify email', 'send token', 'redirect']);
 cache.get('reset-pwd');  // ['verify email', ...] + updates lastUsed`,
@@ -1654,11 +1672,17 @@ cache.get('reset-pwd');  // ['verify email', ...] + updates lastUsed`,
     id: "ConsolidationEngine",
     name: "ConsolidationEngine",
     nameZh: "\u6574\u5408\u5F15\u64CE",
+    nameJa: "\u7D71\u5408\u30A8\u30F3\u30B8\u30F3",
+    nameKo: "\uD1B5\uD569 \uC5D4\uC9C4",
     layer: "consolidation",
     description: "Similarity-based memory merging. Combines near-duplicate memories into consolidated entries.",
     descriptionZh: "\u57FA\u4E8E\u76F8\u4F3C\u5EA6\u7684\u8BB0\u5FC6\u5408\u5E76\uFF08Jaccard\uFF09\u3002",
+    descriptionJa: "\u985E\u4F3C\u6027\u306B\u57FA\u3065\u304F\u8A18\u61B6\u306E\u30DE\u30FC\u30B8\u3002\u307B\u307C\u91CD\u8907\u3057\u305F\u8A18\u61B6\u3092\u7D71\u5408\u30A8\u30F3\u30C8\u30EA\u306B\u307E\u3068\u3081\u307E\u3059\u3002",
+    descriptionKo: "\uC720\uC0AC\uC131 \uAE30\uBC18 \uAE30\uC5B5 \uBCD1\uD569. \uAC70\uC758 \uC911\uBCF5\uB41C \uAE30\uC5B5\uC744 \uD1B5\uD569 \uD56D\uBAA9\uC73C\uB85C \uACB0\uD569\uD569\uB2C8\uB2E4.",
     useCase: "Periodically dedupe and merge similar episodes to prevent unbounded growth. Keeps average importance across merges.",
     useCaseZh: "\u5B9A\u671F\u5408\u5E76\u76F8\u4F3C\u4E8B\u4EF6\u4EE5\u9632\u6B62\u65E0\u9650\u589E\u957F\uFF0C\u4FDD\u7559\u5E73\u5747\u91CD\u8981\u6027\u3002",
+    useCaseJa: "\u9577\u671F\u8A18\u61B6\u304C\u81A8\u3089\u3093\u3060\u3089\u5B9A\u671F\u7684\u306B\u7D71\u5408\u3057\u3001\u5BB9\u91CF\u3092\u7BC0\u7D04\u3057\u307E\u3059\u3002",
+    useCaseKo: "\uC7A5\uAE30 \uAE30\uC5B5\uC774 \uCEE4\uC9C0\uBA74 \uC815\uAE30\uC801\uC73C\uB85C \uD1B5\uD569\uD558\uC5EC \uC6A9\uB7C9\uC744 \uC808\uC57D\uD569\uB2C8\uB2E4.",
     codePreview: `const c = new ConsolidationEngine();
 const merged = c.consolidate([itemA, itemB]); // Jaccard sim \u2265 threshold \u2192 merged`,
     pulled: 19400,
@@ -1669,11 +1693,17 @@ const merged = c.consolidate([itemA, itemB]); // Jaccard sim \u2265 threshold \u
     id: "ForgettingEngine",
     name: "ForgettingEngine",
     nameZh: "\u9057\u5FD8\u5F15\u64CE",
+    nameJa: "\u5FD8\u5374\u30A8\u30F3\u30B8\u30F3",
+    nameKo: "\uB9DD\uAC01 \uC5D4\uC9C4",
     layer: "consolidation",
     description: "Ebbinghaus-style decay. Drops memories below a relevance threshold.",
     descriptionZh: "\u827E\u5BBE\u6D69\u65AF\u5F0F\u6307\u6570\u8870\u51CF\u3002",
+    descriptionJa: "Ebbinghaus\uFF08\u30A8\u30D3\u30F3\u30B0\u30CF\u30A6\u30B9\uFF09\u578B\u6E1B\u8870\u3002\u95BE\u5024\u3092\u4E0B\u56DE\u308B\u8A18\u61B6\u3092\u524A\u9664\u3002",
+    descriptionKo: "\uC5D0\uBE59\uD558\uC6B0\uC2A4 \uC2A4\uD0C0\uC77C \uAC10\uC1E0. \uAD00\uB828\uC131 \uC784\uACC4\uAC12 \uC774\uD558\uC758 \uAE30\uC5B5\uC744 \uC0AD\uC81C.",
     useCase: "Apply exponential decay to importance over time. Auto-forget trivially old or low-importance entries.",
     useCaseZh: "\u968F\u65F6\u95F4\u5BF9\u91CD\u8981\u6027\u5E94\u7528\u6307\u6570\u8870\u51CF\uFF0C\u81EA\u52A8\u9057\u5FD8\u8001\u65E7\u6216\u4F4E\u91CD\u8981\u6027\u6761\u76EE\u3002",
+    useCaseJa: "\u53E4\u3044\u30FB\u95A2\u9023\u6027\u306E\u4F4E\u3044\u8A18\u61B6\u3092\u81EA\u52D5\u7684\u306B\u5FD8\u5374\u3057\u3066\u3001\u30B9\u30C8\u30EC\u30FC\u30B8\u3092\u5065\u5168\u306B\u4FDD\u3061\u307E\u3059\u3002",
+    useCaseKo: "\uC624\uB798\uB418\uACE0 \uAD00\uB828\uC131 \uB0AE\uC740 \uAE30\uC5B5\uC744 \uC790\uB3D9\uC73C\uB85C \uB9DD\uAC01\uD558\uC5EC \uC2A4\uD1A0\uB9AC\uC9C0\uB97C \uAC74\uAC15\uD558\uAC8C \uC720\uC9C0\uD569\uB2C8\uB2E4.",
     codePreview: `const f = new ForgettingEngine();
 f.relevance(oldItem, 100_000);  // importance * exp(-age/decay)`,
     pulled: 17800,
@@ -1684,11 +1714,17 @@ f.relevance(oldItem, 100_000);  // importance * exp(-age/decay)`,
     id: "MemoryRetriever",
     name: "MemoryRetriever",
     nameZh: "\u8BB0\u5FC6\u68C0\u7D22\u5668",
+    nameJa: "\u8A18\u61B6\u30EA\u30C8\u30EA\u30FC\u30D0\u30FC",
+    nameKo: "\uAE30\uC5B5 \uAC80\uC0C9\uAE30",
     layer: "semantic",
     description: "Score-based retrieval combining importance + recency + query match.",
     descriptionZh: "\u7ED3\u5408\u91CD\u8981\u6027\u3001\u65B0\u8FD1\u5EA6\u3001\u5339\u914D\u7684\u8BC4\u5206\u68C0\u7D22\u3002",
+    descriptionJa: "\u91CD\u8981\u5EA6 + \u65B0\u898F\u5EA6 + \u30AF\u30A8\u30EA\u30DE\u30C3\u30C1\u306B\u3088\u308B\u30B9\u30B3\u30A2\u30D9\u30FC\u30B9\u691C\u7D22\u3002",
+    descriptionKo: "\uC911\uC694\uB3C4 + \uCD5C\uC2E0\uC131 + \uCFFC\uB9AC \uB9E4\uCE58\uB97C \uACB0\uD569\uD55C \uC810\uC218 \uAE30\uBC18 \uAC80\uC0C9.",
     useCase: "Score every candidate memory and return top-k most relevant for the current query.",
     useCaseZh: "\u4E3A\u6BCF\u4E2A\u5019\u9009\u8BB0\u5FC6\u6253\u5206\uFF0C\u8FD4\u56DE\u5F53\u524D\u67E5\u8BE2\u6700\u76F8\u5173\u7684 top-k\u3002",
+    useCaseJa: "\u30AF\u30A8\u30EA\u306B\u5FDC\u3058\u3066\u3001\u95A2\u9023\u6027\xD7\u65B0\u9BAE\u3055\xD7\u91CD\u8981\u5EA6\u306E\u52A0\u91CD\u5408\u8A08\u3067\u30B9\u30B3\u30A2\u3092\u4ED8\u3051\u3066\u53D6\u5F97\u3057\u307E\u3059\u3002",
+    useCaseKo: "\uCFFC\uB9AC\uC5D0 \uB530\uB77C \uAD00\uB828\uC131\xB7\uC2E0\uC120\uB3C4\xB7\uC911\uC694\uB3C4\uC758 \uAC00\uC911 \uD569\uACC4\uB85C \uC810\uC218\uB97C \uB9E4\uACA8 \uC870\uD68C\uD569\uB2C8\uB2E4.",
     codePreview: `const r = new MemoryRetriever();
 const top = r.retrieve(items, 'weather', 5);`,
     pulled: 22400,
@@ -1699,11 +1735,17 @@ const top = r.retrieve(items, 'weather', 5);`,
     id: "MemoryEncoder",
     name: "MemoryEncoder",
     nameZh: "\u8BB0\u5FC6\u7F16\u7801\u5668",
+    nameJa: "\u8A18\u61B6\u30A8\u30F3\u30B3\u30FC\u30C0\u30FC",
+    nameKo: "\uAE30\uC5B5 \uC778\uCF54\uB354",
     layer: "procedural",
     description: "Hash + slice-based content encoder for round-trip storage.",
     descriptionZh: "\u57FA\u4E8E\u54C8\u5E0C\u7684\u786E\u5B9A\u6027\u5185\u5BB9\u7F16\u7801\u5668\u3002",
+    descriptionJa: "\u30E9\u30A6\u30F3\u30C9\u30C8\u30EA\u30C3\u30D7\u4FDD\u5B58\u7528\u306E\u30CF\u30C3\u30B7\u30E5+\u30B9\u30E9\u30A4\u30B9\u30D9\u30FC\u30B9\u30B3\u30F3\u30C6\u30F3\u30C4\u30A8\u30F3\u30B3\u30FC\u30C0\u30FC\u3002",
+    descriptionKo: "\uB77C\uC6B4\uB4DC\uD2B8\uB9BD \uC800\uC7A5\uC744 \uC704\uD55C \uD574\uC2DC+\uC2AC\uB77C\uC774\uC2A4 \uAE30\uBC18 \uCF58\uD150\uCE20 \uC778\uCF54\uB354.",
     useCase: "Compactly encode content strings for storage with deterministic round-trip and size estimation.",
     useCaseZh: "\u5BF9\u5185\u5BB9\u5B57\u7B26\u4E32\u8FDB\u884C\u7D27\u51D1\u7F16\u7801\uFF0C\u652F\u6301\u786E\u5B9A\u6027\u5F80\u8FD4\u548C\u5927\u5C0F\u4F30\u7B97\u3002",
+    useCaseJa: "\u4EFB\u610F\u306E\u69CB\u9020\u5316\u30DA\u30A4\u30ED\u30FC\u30C9\u3092\u6587\u5B57\u5217\u30AD\u30FC\u306B\u30A8\u30F3\u30B3\u30FC\u30C9\u3057\u3066\u8A18\u61B6\u30B9\u30C8\u30EC\u30FC\u30B8\u306B\u683C\u7D0D\u3002",
+    useCaseKo: "\uC784\uC758\uC758 \uAD6C\uC870\uD654\uB41C \uD398\uC774\uB85C\uB4DC\uB97C \uBB38\uC790\uC5F4 \uD0A4\uB85C \uC778\uCF54\uB529\uD558\uC5EC \uAE30\uC5B5 \uC800\uC7A5\uC18C\uC5D0 \uC800\uC7A5\uD569\uB2C8\uB2E4.",
     codePreview: `const e = new MemoryEncoder();
 const encoded = e.encode('hello world');  // 'mem:abc12345:hello w'`,
     pulled: 12e3,
@@ -1714,11 +1756,17 @@ const encoded = e.encode('hello world');  // 'mem:abc12345:hello w'`,
     id: "MemoryDecoder",
     name: "MemoryDecoder",
     nameZh: "\u8BB0\u5FC6\u89E3\u7801\u5668",
+    nameJa: "\u8A18\u61B6\u30C7\u30B3\u30FC\u30C0\u30FC",
+    nameKo: "\uAE30\uC5B5 \uB514\uCF54\uB354",
     layer: "procedural",
     description: "Reverse encoding + delimiter-based splitting for batch decode.",
     descriptionZh: "\u53CD\u5411\u7F16\u7801 + \u5206\u9694\u7B26\u6279\u91CF\u62C6\u5206\u3002",
+    descriptionJa: "\u30A8\u30F3\u30B3\u30FC\u30C9\u306E\u9006\u64CD\u4F5C+\u533A\u5207\u308A\u6587\u5B57\u306B\u3088\u308B\u30D0\u30C3\u30C1\u30C7\u30B3\u30FC\u30C9\u3002",
+    descriptionKo: "\uC778\uCF54\uB529\uC758 \uC5ED\uC5F0\uC0B0 + \uAD6C\uBD84\uC790\uB85C \uBC30\uCE58 \uB514\uCF54\uB4DC.",
     useCase: "Reverse the encoded memory back to its original content; split consolidated batches back into items.",
     useCaseZh: "\u5C06\u7F16\u7801\u540E\u7684\u8BB0\u5FC6\u53CD\u8F6C\u4E3A\u539F\u59CB\u5185\u5BB9\uFF1B\u5C06\u5408\u5E76\u6279\u91CF\u62C6\u56DE\u5355\u72EC\u9879\u3002",
+    useCaseJa: "\u30A8\u30F3\u30B3\u30FC\u30C9\u3055\u308C\u305F\u8A18\u61B6\u30AD\u30FC\u3092\u5143\u306E\u69CB\u9020\u5316\u30DA\u30A4\u30ED\u30FC\u30C9\u306B\u623B\u3057\u307E\u3059\u3002",
+    useCaseKo: "\uC778\uCF54\uB529\uB41C \uAE30\uC5B5 \uD0A4\uB97C \uC6D0\uB798\uC758 \uAD6C\uC870\uD654\uB41C \uD398\uC774\uB85C\uB4DC\uB85C \uBCF5\uC6D0\uD569\uB2C8\uB2E4.",
     codePreview: `const d = new MemoryDecoder();
 d.reverse('mem:abc:hello');  // 'hello'
 d.split('a | b | c');         // ['a', 'b', 'c']`,
@@ -1730,11 +1778,17 @@ d.split('a | b | c');         // ['a', 'b', 'c']`,
     id: "MemoryHierarchy",
     name: "MemoryHierarchy",
     nameZh: "\u8BB0\u5FC6\u5C42\u7EA7",
+    nameJa: "\u8A18\u61B6\u968E\u5C64",
+    nameKo: "\uAE30\uC5B5 \uACC4\uCE35",
     layer: "consolidation",
     description: "Tiered classification into hot/warm/cold with time-and-importance rules.",
     descriptionZh: "\u70ED\u70B9/\u6E29/\u51B7 \u4E09\u7EA7\u5206\u7C7B\u3002",
+    descriptionJa: "\u30DB\u30C3\u30C8/\u30A6\u30A9\u30FC\u30E0/\u30B3\u30FC\u30EB\u30C9\u306E\u30C6\u30A3\u30A2\u30FC\u30C9\u5206\u985E\u3002",
+    descriptionKo: "\uD56B/\uC6DC/\uCF5C\uB4DC \uB4F1\uAE09 \uBD84\uB958.",
     useCase: "Partition memories into hot (recent+important) \u2192 warm (recent) \u2192 cold (old). Each tier can have different storage backends.",
     useCaseZh: '\u6309"\u70ED\u5EA6"\u628A\u8BB0\u5FC6\u5206\u6210 hot\uFF08\u8FD1+\u91CD\u8981\uFF09/warm\uFF08\u8FD1\u671F\uFF09/cold\uFF08\u4E45\u8FDC\uFF09\uFF0C\u6BCF\u5C42\u53EF\u6302\u4E0D\u540C\u5B58\u50A8\u540E\u7AEF\u3002',
+    useCaseJa: "\u30A2\u30AF\u30BB\u30B9\u983B\u5EA6\u3068\u91CD\u8981\u6027\u3067\u8A18\u61B6\u30923\u968E\u5C64\u306B\u81EA\u52D5\u5206\u985E\u3057\u3001\u30B9\u30C8\u30EC\u30FC\u30B8\u3068\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u3092\u6700\u9069\u5316\u3002",
+    useCaseKo: "\uC811\uADFC \uBE48\uB3C4\uC640 \uC911\uC694\uB3C4\uB85C \uAE30\uC5B5\uC744 3\uACC4\uCE35\uC73C\uB85C \uC790\uB3D9 \uBD84\uB958\uD558\uC5EC \uC2A4\uD1A0\uB9AC\uC9C0\uC640 \uC131\uB2A5\uC744 \uCD5C\uC801\uD654\uD569\uB2C8\uB2E4.",
     codePreview: `const h = new MemoryHierarchy();
 h.partition(items);  // { hot, warm, cold }`,
     pulled: 15600,
@@ -1745,11 +1799,17 @@ h.partition(items);  // { hot, warm, cold }`,
     id: "LongTermMemoryManager",
     name: "LongTermMemoryManager",
     nameZh: "\u957F\u671F\u8BB0\u5FC6\u7BA1\u7406",
+    nameJa: "\u9577\u671F\u8A18\u61B6\u30DE\u30CD\u30FC\u30B8\u30E3\u30FC",
+    nameKo: "\uC7A5\uAE30 \uAE30\uC5B5 \uB9E4\uB2C8\uC800",
     layer: "long-term",
     description: "Permanent key-value store with age tracking and list operations.",
     descriptionZh: "\u6C38\u4E45\u952E\u503C\u5B58\u50A8\uFF0C\u5E26 age \u8FFD\u8E2A\u4E0E list \u64CD\u4F5C\u3002",
+    descriptionJa: "\u30A8\u30FC\u30B8\u8FFD\u8DE1\u4ED8\u304D\u306E\u6C38\u7D9A\u7684\u306AK/V\u30B9\u30C8\u30A2\u3002",
+    descriptionKo: "\uC5D0\uC774\uC9C0 \uCD94\uC801\uC774 \uC788\uB294 \uC601\uAD6C K/V \uC800\uC7A5\uC18C.",
     useCase: "Store memories that survive session boundaries. Track age for eviction policy.",
     useCaseZh: "\u8DE8\u4F1A\u8BDD\u4FDD\u5B58\u8BB0\u5FC6\uFF0C\u8DDF\u8E2A age \u4EE5\u652F\u6301\u6DD8\u6C70\u7B56\u7565\u3002",
+    useCaseJa: "\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u307E\u305F\u3044\u3067\u6B8B\u3059\u3079\u304D\u91CD\u8981\u4E8B\u5B9F\u3092\u6C38\u7D9AK/V\u3068\u3057\u3066\u4FDD\u7BA1\u3057\u307E\u3059\u3002",
+    useCaseKo: "\uC138\uC158\uC744 \uB118\uC5B4 \uBCF4\uC874\uD574\uC57C \uD560 \uC911\uC694\uD55C \uC0AC\uC2E4\uC744 \uC601\uAD6C K/V\uB85C \uBCF4\uAD00\uD569\uB2C8\uB2E4.",
     codePreview: `const m = new LongTermMemoryManager();
 m.store('preference-theme', 'dark');
 m.age('preference-theme');  // ms since last store`,
@@ -1761,11 +1821,17 @@ m.age('preference-theme');  // ms since last store`,
     id: "ShortTermMemory",
     name: "ShortTermMemory",
     nameZh: "\u77ED\u671F\u8BB0\u5FC6",
+    nameJa: "\u77ED\u671F\u8A18\u61B6",
+    nameKo: "\uB2E8\uAE30 \uAE30\uC5B5",
     layer: "short-term",
     description: "Bounded FIFO buffer that evicts oldest entries when full.",
     descriptionZh: "\u6709\u754C FIFO \u6EDA\u52A8\u7F13\u51B2\u533A\uFF0C\u81EA\u52A8\u6DD8\u6C70\u6700\u65E7\u6761\u76EE\u3002",
+    descriptionJa: "\u6709\u754CFIFO\u30ED\u30FC\u30EA\u30F3\u30B0\u30D0\u30C3\u30D5\u30A1\u3002",
+    descriptionKo: "\uC81C\uD55C\uB41C FIFO \uB864\uB9C1 \uBC84\uD37C.",
     useCase: "Keep a bounded rolling window of recent conversation turns without unbounded growth.",
     useCaseZh: "\u4FDD\u6301\u4F1A\u8BDD\u4E0A\u4E0B\u6587\u7684\u6EDA\u52A8\u7A97\u53E3\uFF0C\u907F\u514D\u65E0\u9650\u589E\u957F\u3002",
+    useCaseJa: "\u76F4\u8FD1\u306E\u30BF\u30FC\u30F3\u306E\u3084\u308A\u53D6\u308A\u3092\u77ED\u671F\u8A18\u61B6\u306B\u4FDD\u6301\u3057\u3001\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u76F4\u63A5\u6CE8\u5165\u3057\u307E\u3059\u3002",
+    useCaseKo: "\uCD5C\uADFC \uD134\uC758 \uC0C1\uD638\uC791\uC6A9\uC744 \uB2E8\uAE30 \uAE30\uC5B5\uC5D0 \uC720\uC9C0\uD558\uACE0 \uD504\uB86C\uD504\uD2B8\uC5D0 \uC9C1\uC811 \uC8FC\uC785\uD569\uB2C8\uB2E4.",
     codePreview: `const s = new ShortTermMemory(10);
 s.push('hello').push('world');  // [hello, world]`,
     pulled: 18600,
@@ -1776,11 +1842,17 @@ s.push('hello').push('world');  // [hello, world]`,
     id: "WorkingMemory",
     name: "WorkingMemory",
     nameZh: "\u5DE5\u4F5C\u8BB0\u5FC6",
+    nameJa: "\u4F5C\u696D\u8A18\u61B6",
+    nameKo: "\uC791\uC5C5 \uAE30\uC5B5",
     layer: "working",
     description: "Attention-focused store with decay mechanism for active reasoning.",
     descriptionZh: "\u6CE8\u610F\u529B\u805A\u7126 + \u8870\u51CF\u7684\u5DE5\u4F5C\u96C6\u3002",
+    descriptionJa: "Attention Focused \u306E\u6E1B\u8870\u30A2\u30A4\u30C6\u30E0\u3002",
+    descriptionKo: "\uC8FC\uC758 \uC9D1\uC911 \uD56D\uBAA9\uC758 \uAC10\uC1E0 \uCEEC\uB809\uC158.",
     useCase: "Keep currently-active items (recent query + supporting facts) with attention scores that decay over time.",
     useCaseZh: "\u4FDD\u5B58\u5F53\u524D\u6D3B\u8DC3\u9879\uFF08\u5F53\u524D\u67E5\u8BE2 + \u652F\u6491\u4E8B\u5B9E\uFF09\uFF0C\u6CE8\u610F\u529B\u968F\u65F6\u95F4\u8870\u51CF\u3002",
+    useCaseJa: "\u73FE\u5728\u306E\u30BF\u30B9\u30AF\u306B\u96C6\u4E2D\u3059\u3079\u304D\u4E2D\u9593\u7D50\u679C\u3092\u77ED\u3044\u30E9\u30A4\u30D5\u30BF\u30A4\u30E0\u3067\u4FDD\u6301\u3057\u307E\u3059\u3002",
+    useCaseKo: "\uD604\uC7AC \uC791\uC5C5\uC5D0 \uC9D1\uC911\uD574\uC57C \uD558\uB294 \uC911\uAC04 \uACB0\uACFC\uB97C \uC9E7\uC740 \uC218\uBA85\uC73C\uB85C \uC720\uC9C0\uD569\uB2C8\uB2E4.",
     codePreview: `const w = new WorkingMemory();
 w.focus('current-task', 'debug auth flow', 1.0);
 w.decay(0.9);  // attention * 0.9`,
@@ -1792,11 +1864,17 @@ w.decay(0.9);  // attention * 0.9`,
     id: "AssociativeMemory",
     name: "AssociativeMemory",
     nameZh: "\u8054\u60F3\u8BB0\u5FC6",
+    nameJa: "\u9023\u60F3\u8A18\u61B6",
+    nameKo: "\uC5F0\uC0C1 \uAE30\uC5B5",
     layer: "associative",
     description: "Graph-style link store with BFS-based reachability for associative recall.",
     descriptionZh: "\u56FE\u72B6\u94FE\u63A5\u5B58\u50A8 + BFS \u53EF\u8FBE\u6027\uFF0C\u7528\u4E8E\u8054\u60F3\u56DE\u5FC6\u3002",
+    descriptionJa: "\u30B0\u30E9\u30D5\u30D9\u30FC\u30B9\u30EA\u30F3\u30AF\u30B9\u30C8\u30A2 + BFS \u5230\u9054\u53EF\u80FD\u6027\u3002",
+    descriptionKo: "\uADF8\uB798\uD504 \uAE30\uBC18 \uB9C1\uD06C \uC800\uC7A5\uC18C + BFS \uB3C4\uB2EC \uAC00\uB2A5\uC131.",
     useCase: 'Link related memories (e.g. "user mentioned ramen \u2192 user likes Japanese food"). Traverse graph for associative recall.',
     useCaseZh: '\u94FE\u63A5\u76F8\u5173\u8BB0\u5FC6\uFF08\u5982"\u7528\u6237\u63D0\u5230\u62C9\u9762 \u2192 \u7528\u6237\u559C\u6B22\u65E5\u6599"\uFF09\uFF0C\u56FE\u904D\u5386\u652F\u6301\u8054\u60F3\u56DE\u5FC6\u3002',
+    useCaseJa: "\u3042\u308B\u8A18\u61B6\u304B\u3089\u95A2\u9023\u3059\u308B\u8A18\u61B6\u3092\u30B0\u30E9\u30D5\u3067\u8FBF\u3063\u3066\u601D\u3044\u51FA\u3059\u305F\u3081\u306E\u8A18\u61B6\u5C64\u3067\u3059\u3002",
+    useCaseKo: "\uD55C \uAE30\uC5B5\uC5D0\uC11C \uAD00\uB828 \uAE30\uC5B5\uC744 \uADF8\uB798\uD504\uB85C \uCD94\uC801\uD558\uC5EC \uD68C\uC0C1\uD558\uB294 \uAE30\uC5B5 \uB808\uC774\uC5B4\uC785\uB2C8\uB2E4.",
     codePreview: `const a = new AssociativeMemory();
 a.link('ramen', 'japanese-food');
 a.neighbors('ramen');  // ['japanese-food']
@@ -1809,11 +1887,17 @@ a.reachable('ramen', 2);  // broader associative recall`,
     id: "ContextWindow",
     name: "ContextWindow",
     nameZh: "\u4E0A\u4E0B\u6587\u7A97\u53E3",
+    nameJa: "\u30B3\u30F3\u30C6\u30AD\u30B9\u30C8\u30A6\u30A3\u30F3\u30C9\u30A6",
+    nameKo: "\uCEE8\uD14D\uC2A4\uD2B8 \uC708\uB3C4\uC6B0",
     layer: "working",
     description: "Bounded token window with FIFO eviction when capacity exceeded.",
     descriptionZh: "\u6709\u754C token \u7A97\u53E3\uFF0CFIFO \u6DD8\u6C70\u3002",
+    descriptionJa: "FIFO\u9000\u907F\u4ED8\u304D\u306E\u30C8\u30FC\u30AF\u30F3\u5236\u9650\u30A6\u30A3\u30F3\u30C9\u30A6\u3002",
+    descriptionKo: "FIFO \uCD95\uCD9C\uC774 \uC788\uB294 \uD1A0\uD070 \uC81C\uD55C \uC708\uB3C4\uC6B0.",
     useCase: "Track the active LLM context window size in tokens and reject/evict when full.",
     useCaseZh: "\u8DDF\u8E2A LLM \u4E0A\u4E0B\u6587\u5927\u5C0F token\uFF0C\u6EE1\u5219\u62D2\u7EDD/\u6DD8\u6C70\u3002",
+    useCaseJa: "\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u53CE\u307E\u308B\u3088\u3046\u306B\u30B3\u30F3\u30C6\u30AD\u30B9\u30C8\u3092\u5207\u308A\u8A70\u3081\u307E\u3059\u3002",
+    useCaseKo: "\uD504\uB86C\uD504\uD2B8\uC5D0 \uB9DE\uB3C4\uB85D \uCEE8\uD14D\uC2A4\uD2B8\uB97C \uC798\uB77C\uB0C5\uB2C8\uB2E4.",
     codePreview: `const w = new ContextWindow(4096);
 w.add('token1'); w.isFull();  // false
 // ... fill it up ...
@@ -1826,11 +1910,17 @@ w.remaining();  // 0`,
     id: "AttentionMechanism",
     name: "AttentionMechanism",
     nameZh: "\u6CE8\u610F\u529B\u673A\u5236",
+    nameJa: "\u30A2\u30C6\u30F3\u30B7\u30E7\u30F3\u6A5F\u69CB",
+    nameKo: "\uC5B4\uD150\uC158 \uBA54\uCEE4\uB2C8\uC998",
     layer: "working",
     description: "Softmax-based attention with top-K retrieval for relevance ranking.",
     descriptionZh: "\u57FA\u4E8E softmax \u7684\u6CE8\u610F\u529B + top-K \u9009\u53D6\u3002",
+    descriptionJa: "top-K \u9078\u629E\u4ED8\u304D\u306E\u30BD\u30D5\u30C8\u30DE\u30C3\u30AF\u30B9\u30D9\u30FC\u30B9\u6CE8\u610F\u3002",
+    descriptionKo: "top-K \uC120\uD0DD\uC774 \uD3EC\uD568\uB41C \uC18C\uD504\uD2B8\uB9E5\uC2A4 \uAE30\uBC18 \uC5B4\uD150\uC158.",
     useCase: "Compute softmax attention weights over candidate context and pick top-K most relevant.",
     useCaseZh: "\u5BF9\u5019\u9009\u4E0A\u4E0B\u6587\u8BA1\u7B97 softmax \u6743\u91CD\u5E76\u9009\u53D6 top-K \u6700\u76F8\u5173\u3002",
+    useCaseJa: "\u5019\u88DC\u30B3\u30F3\u30C6\u30AD\u30B9\u30C8\u306B\u5BFE\u3057\u3066\u30BD\u30D5\u30C8\u30DE\u30C3\u30AF\u30B9\u6CE8\u610F\u30A6\u30A7\u30A4\u30C8\u3092\u8A08\u7B97\u3057\u3001top-K \u3092\u9078\u3073\u307E\u3059\u3002",
+    useCaseKo: "\uD6C4\uBCF4 \uCEE8\uD14D\uC2A4\uD2B8\uC5D0 \uB300\uD574 \uC18C\uD504\uD2B8\uB9E5\uC2A4 \uAC00\uC911\uCE58\uB97C \uACC4\uC0B0\uD558\uACE0 top-K \uB97C \uC120\uD0DD\uD569\uB2C8\uB2E4.",
     codePreview: `const a = new AttentionMechanism();
 const w = a.attend([1, 0], [[1, 0], [0, 1]]);
 a.topK(w, 1);  // [0]`,
@@ -1842,11 +1932,17 @@ a.topK(w, 1);  // [0]`,
     id: "MemoryCompression",
     name: "MemoryCompression",
     nameZh: "\u8BB0\u5FC6\u538B\u7F29",
+    nameJa: "\u8A18\u61B6\u5727\u7E2E",
+    nameKo: "\uAE30\uC5B5 \uC555\uCD95",
     layer: "compressor",
     description: "Deduplication + truncation compression with ratio measurement.",
     descriptionZh: "\u53BB\u91CD + \u622A\u65AD\u538B\u7F29\uFF0C\u8F93\u51FA\u6BD4\u4F8B\u3002",
+    descriptionJa: "\u91CD\u8907\u9664\u53BB + \u5207\u308A\u8A70\u3081\u5727\u7E2E\u3002\u5727\u7E2E\u6BD4\u3092\u51FA\u529B\u3002",
+    descriptionKo: "\uC911\uBCF5 \uC81C\uAC70 + \uC798\uB77C\uB0B4\uAE30 \uC555\uCD95. \uC555\uCD95 \uBE44\uC728\uC744 \uCD9C\uB825\uD569\uB2C8\uB2E4.",
     useCase: "Compress memory payloads before storage to bound total token cost. Measure compression ratio.",
     useCaseZh: "\u5B58\u50A8\u524D\u538B\u7F29\u8BB0\u5FC6 payload\uFF0C\u63A7\u5236 token \u603B\u5F00\u9500\u3002",
+    useCaseJa: "\u4FDD\u5B58\u524D\u306B\u30DA\u30A4\u30ED\u30FC\u30C9\u3092\u5727\u7E2E\u3057\u3066\u30C8\u30FC\u30AF\u30F3\u91CF\u3092\u6291\u5236\u3057\u307E\u3059\u3002",
+    useCaseKo: "\uC800\uC7A5 \uC804\uC5D0 \uD398\uC774\uB85C\uB4DC\uB97C \uC555\uCD95\uD558\uC5EC \uD1A0\uD070 \uC0AC\uC6A9\uB7C9\uC744 \uC5B5\uC81C\uD569\uB2C8\uB2E4.",
     codePreview: `const c = new MemoryCompression();
 c.compress(['a', 'b', 'a']);  // ['a', 'b']
 c.ratio(original, compressed);  // 0.67`,
@@ -1858,11 +1954,17 @@ c.ratio(original, compressed);  // 0.67`,
     id: "MemoryCache",
     name: "MemoryCache",
     nameZh: "\u8BB0\u5FC6\u7F13\u5B58",
+    nameJa: "\u8A18\u61B6\u30AD\u30E3\u30C3\u30B7\u30E5",
+    nameKo: "\uAE30\uC5B5 \uCE90\uC2DC",
     layer: "integration",
     description: "LRU-style key cache for hot memory access with eviction on size cap.",
     descriptionZh: "\u70ED\u95E8\u8BBF\u95EE\u952E\u7684 LRU \u7F13\u5B58\u4E0E\u6DD8\u6C70\u3002",
+    descriptionJa: "\u30B5\u30A4\u30BA\u4E0A\u9650+\u9000\u907F\u4ED8\u304D\u306ELRU\u30AD\u30FC\u30AD\u30E3\u30C3\u30B7\u30E5\u3002",
+    descriptionKo: "\uC0AC\uC774\uC988 \uC0C1\uD55C + \uCD95\uCD9C\uC774 \uC788\uB294 LRU \uD0A4 \uCE90\uC2DC.",
     useCase: "Cache frequently-accessed memory keys in memory to avoid recomputation or storage hit.",
     useCaseZh: "\u7F13\u5B58\u9AD8\u9891\u8BBF\u95EE\u7684\u8BB0\u5FC6\u952E\uFF0C\u907F\u514D\u91CD\u590D\u8BA1\u7B97\u6216\u5B58\u50A8\u547D\u4E2D\u3002",
+    useCaseJa: "\u983B\u5EA6\u306E\u9AD8\u3044\u30AD\u30FC\u30A2\u30AF\u30BB\u30B9\u3092\u30E1\u30E2\u30EA\u306B\u30AD\u30E3\u30C3\u30B7\u30E5\u3057\u3001\u518D\u8A08\u7B97\u3084\u30B9\u30C8\u30EC\u30FC\u30B8\u30D2\u30C3\u30C8\u3092\u56DE\u907F\u3002",
+    useCaseKo: "\uC790\uC8FC \uC561\uC138\uC2A4\uD558\uB294 \uD0A4\uB97C \uBA54\uBAA8\uB9AC\uC5D0 \uCE90\uC2DC\uD558\uC5EC \uC7AC\uACC4\uC0B0\uC774\uB098 \uC2A4\uD1A0\uB9AC\uC9C0 \uD788\uD2B8\uB97C \uD68C\uD53C\uD569\uB2C8\uB2E4.",
     codePreview: `const c = new MemoryCache(100);
 c.set('user-id', 'u_123');
 c.get('user-id');  // 'u_123'
@@ -1875,11 +1977,17 @@ c.invalidate('user-id');  // true`,
     id: "MemoryProfiler",
     name: "MemoryProfiler",
     nameZh: "\u8BB0\u5FC6\u753B\u50CF",
+    nameJa: "\u8A18\u61B6\u30D7\u30ED\u30D5\u30A1\u30A4\u30E9\u30FC",
+    nameKo: "\uAE30\uC5B5 \uD504\uB85C\uD30C\uC77C\uB7EC",
     layer: "integration",
     description: "Operation duration + bytes profiler per agent.",
     descriptionZh: "\u6BCF agent \u7684\u64CD\u4F5C\u65F6\u957F + \u5B57\u8282\u753B\u50CF\u3002",
+    descriptionJa: "\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8\u5225\u306E\u64CD\u4F5C\u6642\u9593 + \u30D0\u30A4\u30C8\u30D7\u30ED\u30D5\u30A1\u30A4\u30E9\u30FC\u3002",
+    descriptionKo: "\uC5D0\uC774\uC804\uD2B8\uBCC4 \uC791\uC5C5 \uC2DC\uAC04 + \uBC14\uC774\uD2B8 \uD504\uB85C\uD30C\uC77C\uB7EC.",
     useCase: "Profile per-operation memory cost (duration + bytes) per agent ID for performance analysis.",
     useCaseZh: "\u6309 agent ID \u753B\u50CF\u6BCF\u64CD\u4F5C\u8BB0\u5FC6\u6210\u672C\uFF08\u65F6\u957F + \u5B57\u8282\uFF09\u3002",
+    useCaseJa: "\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8ID\u3054\u3068\u306B\u64CD\u4F5C\u30B3\u30B9\u30C8(\u6642\u9593 + \u30D0\u30A4\u30C8)\u3092\u8A08\u6E2C\u3057\u3001\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u5206\u6790\u306B\u4F7F\u7528\u3002",
+    useCaseKo: "\uC5D0\uC774\uC804\uD2B8 ID\uBCC4 \uC791\uC5C5 \uBE44\uC6A9(\uC2DC\uAC04 + \uBC14\uC774\uD2B8)\uC744 \uCE21\uC815\uD558\uC5EC \uC131\uB2A5 \uBD84\uC11D\uC5D0 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.",
     codePreview: `const p = new MemoryProfiler();
 p.record('agent-1', 25, 1024);
 p.averageDuration('agent-1');  // 25ms`,
@@ -1891,11 +1999,17 @@ p.averageDuration('agent-1');  // 25ms`,
     id: "MemoryDashboard",
     name: "MemoryDashboard",
     nameZh: "\u8BB0\u5FC6\u4EEA\u8868\u76D8",
+    nameJa: "\u8A18\u61B6\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9",
+    nameKo: "\uAE30\uC5B5 \uB300\uC2DC\uBCF4\uB4DC",
     layer: "integration",
     description: "Headless panel container for memory UI widgets.",
     descriptionZh: "\u8BB0\u5FC6 UI \u7684\u9762\u677F\u5BB9\u5668\u3002",
+    descriptionJa: "\u30E1\u30E2\u30EAUI\u306E\u305F\u3081\u306E\u30D8\u30C3\u30C9\u30EC\u30B9\u30D1\u30CD\u30EB\u30B3\u30F3\u30C6\u30CA\u3002",
+    descriptionKo: "\uBA54\uBAA8\uB9AC UI\uC6A9 \uD5E4\uB4DC\uB9AC\uC2A4 \uD328\uB110 \uCEE8\uD14C\uC774\uB108.",
     useCase: "Build a memory operations dashboard with named panels (LTM size, STM hit rate, retrieval quality).",
     useCaseZh: "\u642D\u5EFA\u8BB0\u5FC6\u64CD\u4F5C\u4EEA\u8868\u76D8\uFF0C\u542B\u547D\u540D\u9762\u677F\uFF08LTM \u5927\u5C0F\u3001STM \u547D\u4E2D\u7387\u3001\u68C0\u7D22\u8D28\u91CF\uFF09\u3002",
+    useCaseJa: "LTM\u30B5\u30A4\u30BA\u30FBSTM\u30D2\u30C3\u30C8\u7387\u30FB\u691C\u7D22\u54C1\u8CEA\u306A\u3069\u306E\u30D1\u30CD\u30EB\u3067\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9\u3092\u69CB\u7BC9\u3002",
+    useCaseKo: "LTM \uD06C\uAE30, STM \uC801\uC911\uB960, \uAC80\uC0C9 \uD488\uC9C8 \uB4F1\uC758 \uD328\uB110\uB85C \uB300\uC2DC\uBCF4\uB4DC\uB97C \uAD6C\uCD95\uD569\uB2C8\uB2E4.",
     codePreview: `const d = new MemoryDashboard();
 d.setPanel('ltm-size', 'LTM Size', 1024);`,
     pulled: 9400,
@@ -1906,11 +2020,17 @@ d.setPanel('ltm-size', 'LTM Size', 1024);`,
     id: "MemoryConfig",
     name: "MemoryConfig",
     nameZh: "\u8BB0\u5FC6\u914D\u7F6E",
+    nameJa: "\u8A18\u61B6\u30B3\u30F3\u30D5\u30A3\u30B0",
+    nameKo: "\uAE30\uC5B5 \uC124\uC815",
     layer: "integration",
     description: "Typed config registry with getNumber/getString/getBoolean typed accessors.",
     descriptionZh: "\u7C7B\u578B\u5316\u914D\u7F6E\u6CE8\u518C\u8868 + getNumber/getString/getBoolean\u3002",
+    descriptionJa: "\u30BF\u30A4\u30D7\u30BB\u30FC\u30D5\u30A2\u30AF\u30BB\u30B5 (getNumber/getString/getBoolean) \u4ED8\u304D\u306E\u8A2D\u5B9A\u30EC\u30B8\u30B9\u30C8\u30EA\u3002",
+    descriptionKo: "\uD0C0\uC785 \uC548\uC804\uD55C \uC811\uADFC\uC790(getNumber/getString/getBoolean)\uAC00 \uC788\uB294 \uC124\uC815 \uB808\uC9C0\uC2A4\uD2B8\uB9AC.",
     useCase: "Centralize memory subsystem configuration with type-safe accessors and defaults.",
     useCaseZh: "\u96C6\u4E2D\u8BB0\u5FC6\u5B50\u7CFB\u7EDF\u914D\u7F6E\uFF0C\u7C7B\u578B\u5B89\u5168\u8BBF\u95EE\u5668 + \u9ED8\u8BA4\u503C\u3002",
+    useCaseJa: "\u30B5\u30D6\u30B7\u30B9\u30C6\u30E0\u8A2D\u5B9A\u3092\u4E00\u5143\u5316\u3057\u3001\u30BF\u30A4\u30D7\u30BB\u30FC\u30D5\u306A\u30A2\u30AF\u30BB\u30B9\u3068\u30C7\u30D5\u30A9\u30EB\u30C8\u5024\u3067\u7BA1\u7406\u3002",
+    useCaseKo: "\uC11C\uBE0C\uC2DC\uC2A4\uD15C \uC124\uC815\uC744 \uC911\uC559 \uC9D1\uC911\uD654\uD558\uACE0 \uD0C0\uC785 \uC548\uC804\uD55C \uC811\uADFC\uACFC \uAE30\uBCF8\uAC12\uC73C\uB85C \uAD00\uB9AC\uD569\uB2C8\uB2E4.",
     codePreview: `const c = new MemoryConfig();
 c.set('window', 4096).set('compression', 'gzip');
 c.getNumber('window');  // 4096`,
@@ -1922,11 +2042,17 @@ c.getNumber('window');  // 4096`,
     id: "MemoryAudit",
     name: "MemoryAudit",
     nameZh: "\u8BB0\u5FC6\u5BA1\u8BA1",
+    nameJa: "\u8A18\u61B6\u76E3\u67FB",
+    nameKo: "\uAE30\uC5B5 \uAC10\uC0AC",
     layer: "integration",
     description: "Per-user action log with time + memory type for compliance and debugging.",
     descriptionZh: "\u6BCF\u7528\u6237\u5E26\u65F6\u95F4\u6233 + \u8BB0\u5FC6\u7C7B\u578B\u7684\u5BA1\u8BA1\u65E5\u5FD7\u3002",
+    descriptionJa: "\u30B3\u30F3\u30D7\u30E9\u30A4\u30A2\u30F3\u30B9\u3068\u30C7\u30D0\u30C3\u30B0\u7528\u306E\u3001\u6642\u523B+\u30E6\u30FC\u30B6\u30FC+\u8A18\u61B6\u30BF\u30A4\u30D7\u3092\u542B\u3080\u30A2\u30AF\u30B7\u30E7\u30F3\u30ED\u30B0\u3002",
+    descriptionKo: "\uCEF4\uD50C\uB77C\uC774\uC5B8\uC2A4 \uBC0F \uB514\uBC84\uAE45\uC6A9\uC73C\uB85C \uC2DC\uAC04+\uC0AC\uC6A9\uC790+\uAE30\uC5B5 \uC720\uD615\uC774 \uD3EC\uD568\uB41C \uC561\uC158 \uB85C\uADF8.",
     useCase: "Audit every memory write/read with timestamp, user ID, action, memory type for compliance.",
     useCaseZh: "\u5BA1\u8BA1\u6BCF\u6B21\u8BB0\u5FC6\u8BFB\u5199\uFF0C\u542B\u65F6\u95F4\u6233\u3001\u7528\u6237\u3001\u52A8\u4F5C\u3001\u8BB0\u5FC6\u7C7B\u578B\u3002",
+    useCaseJa: "\u5168\u66F8\u304D\u8FBC\u307F/\u8AAD\u307F\u53D6\u308A\u3092\u30BF\u30A4\u30E0\u30B9\u30BF\u30F3\u30D7\u30FB\u30E6\u30FC\u30B6\u30FC\u30FB\u30A2\u30AF\u30B7\u30E7\u30F3\u30FB\u30BF\u30A4\u30D7\u3067\u76E3\u67FB\u3002",
+    useCaseKo: "\uBAA8\uB4E0 \uC4F0\uAE30/\uC77D\uAE30\uB97C \uD0C0\uC784\uC2A4\uD0EC\uD504\xB7\uC0AC\uC6A9\uC790\xB7\uC561\uC158\xB7\uC720\uD615\uC73C\uB85C \uAC10\uC0AC\uD569\uB2C8\uB2E4.",
     codePreview: `const a = new MemoryAudit();
 a.record('user-1', 'write', 'episodic');
 a.forUser('user-1');  // audit trail for that user`,
@@ -1938,11 +2064,17 @@ a.forUser('user-1');  // audit trail for that user`,
     id: "MemoryProfile",
     name: "MemoryProfile",
     nameZh: "\u8BB0\u5FC6\u753B\u50CF\u5206\u6790",
+    nameJa: "\u8A18\u61B6\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u5206\u6790",
+    nameKo: "\uAE30\uC5B5 \uD504\uB85C\uD30C\uC77C \uBD84\uC11D",
     layer: "integration",
     description: "Per-agent run counter with items + duration averages.",
     descriptionZh: "\u6BCF agent \u9879\u76EE\u6570 + \u65F6\u957F\u5E73\u5747\u3002",
+    descriptionJa: "\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8\u5225\u306E\u30E9\u30F3\u30AB\u30A6\u30F3\u30BF\u30FC\u3001\u30A2\u30A4\u30C6\u30E0\u6570\u3001\u5E73\u5747\u6642\u9593\u3002",
+    descriptionKo: "\uC5D0\uC774\uC804\uD2B8\uBCC4 \uB7F0 \uCE74\uC6B4\uD130, \uD56D\uBAA9 \uC218, \uD3C9\uADE0 \uC2DC\uAC04.",
     useCase: "Track per-agent memory usage and runtime for cost analysis.",
     useCaseZh: "\u8DDF\u8E2A\u6BCF agent \u8BB0\u5FC6\u4F7F\u7528\u60C5\u51B5\u4E0E\u8FD0\u884C\u65F6\uFF0C\u8FDB\u884C\u6210\u672C\u5206\u6790\u3002",
+    useCaseJa: "\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8\u3054\u3068\u306E\u8A18\u61B6\u4F7F\u7528\u91CF\u3068\u5B9F\u884C\u6642\u9593\u3092\u8FFD\u8DE1\u3057\u3001\u30B3\u30B9\u30C8\u5206\u6790\u306B\u4F7F\u7528\u3002",
+    useCaseKo: "\uC5D0\uC774\uC804\uD2B8\uBCC4 \uAE30\uC5B5 \uC0AC\uC6A9\uB7C9\uACFC \uC2E4\uD589 \uC2DC\uAC04\uC744 \uCD94\uC801\uD558\uC5EC \uBE44\uC6A9 \uBD84\uC11D\uC5D0 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.",
     codePreview: `const p = new MemoryProfile();
 p.record('agent-7', 50, 100);  // session id, items, duration ms
 p.averageItems('agent-7');  // 50`,
@@ -1954,11 +2086,17 @@ p.averageItems('agent-7');  // 50`,
     id: "MemoryMigration",
     name: "MemoryMigration",
     nameZh: "\u8BB0\u5FC6\u8FC1\u79FB",
+    nameJa: "\u8A18\u61B6\u30DE\u30A4\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3",
+    nameKo: "\uAE30\uC5B5 \uB9C8\uC774\uADF8\uB808\uC774\uC158",
     layer: "integration",
     description: "Version-based migration runner for memory schema evolution.",
     descriptionZh: "\u57FA\u4E8E\u7248\u672C\u7684\u8FC1\u79FB\u6267\u884C\u5668\u3002",
+    descriptionJa: "\u30B9\u30AD\u30FC\u30DE\u9032\u5316\u306B\u5BFE\u5FDC\u3059\u308B\u30D0\u30FC\u30B8\u30E7\u30F3\u30D9\u30FC\u30B9\u306E\u30DE\u30A4\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3\u30E9\u30F3\u30CA\u30FC\u3002",
+    descriptionKo: "\uC2A4\uD0A4\uB9C8 \uBCC0\uD654\uC5D0 \uB300\uC751\uD558\uB294 \uBC84\uC804 \uAE30\uBC18 \uB9C8\uC774\uADF8\uB808\uC774\uC158 \uB7EC\uB108.",
     useCase: "Migrate stored memories when schema evolves. v1\u2192v2 migrations run idempotently and asynchronously.",
     useCaseZh: "\u5F53 schema \u6F14\u5316\u65F6\u8FC1\u79FB\u5B58\u50A8\u7684\u8BB0\u5FC6\u3002v1\u2192v2 \u8FC1\u79FB\u5E42\u7B49\u4E14\u5F02\u6B65\u6267\u884C\u3002",
+    useCaseJa: "\u30B9\u30AD\u30FC\u30DE\u304C\u66F4\u65B0\u3055\u308C\u305F\u3068\u304D\u306B\u3001v1\u2192v2 \u30DE\u30A4\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3\u3092\u51AA\u7B49\u304B\u3064\u975E\u540C\u671F\u3067\u5B9F\u884C\u3002",
+    useCaseKo: "\uC2A4\uD0A4\uB9C8\uAC00 \uC5C5\uB370\uC774\uD2B8\uB420 \uB54C v1\u2192v2 \uB9C8\uC774\uADF8\uB808\uC774\uC158\uC744 \uBA71\uB4F1\uD558\uACE0 \uBE44\uB3D9\uAE30\uB85C \uC2E4\uD589\uD569\uB2C8\uB2E4.",
     codePreview: `const m = new MemoryMigration();
 m.define('v2', async () => { /* transform v1 records */ });
 await m.run('v2');
@@ -1971,11 +2109,17 @@ m.isApplied('v2');  // true`,
     id: "MemoryReport",
     name: "MemoryReport",
     nameZh: "\u8BB0\u5FC6\u62A5\u544A",
+    nameJa: "\u8A18\u61B6\u30EC\u30DD\u30FC\u30C8",
+    nameKo: "\uAE30\uC5B5 \uBCF4\uACE0\uC11C",
     layer: "integration",
     description: "Markdown + CSV report generator for memory metrics.",
     descriptionZh: "Markdown + CSV \u62A5\u544A\u751F\u6210\u5668\u3002",
+    descriptionJa: "\u30E1\u30C8\u30EA\u30AF\u30B9\u7528\u306E Markdown + CSV \u30EC\u30DD\u30FC\u30C8\u30B8\u30A7\u30CD\u30EC\u30FC\u30BF\u30FC\u3002",
+    descriptionKo: "\uBA54\uD2B8\uB9AD\uC6A9 Markdown + CSV \uBCF4\uACE0\uC11C \uC0DD\uC131\uAE30.",
     useCase: "Generate human-readable memory subsystem reports for stakeholders: top topics, growth, retention.",
     useCaseZh: "\u4E3A\u5229\u76CA\u76F8\u5173\u65B9\u751F\u6210\u53EF\u8BFB\u7684\u5185\u5B58\u5B50\u7CFB\u7EDF\u62A5\u544A\uFF1A\u70ED\u95E8\u8BDD\u9898\u3001\u589E\u957F\u3001\u7559\u5B58\u3002",
+    useCaseJa: "\u30C8\u30D4\u30C3\u30AF\u4E0A\u4F4D\u30FB\u6210\u9577\u30FB\u4FDD\u6301\u7387\u306A\u3069\u3001\u30B9\u30C6\u30FC\u30AF\u30DB\u30EB\u30C0\u30FC\u5411\u3051\u306E\u53EF\u8AAD\u30EC\u30DD\u30FC\u30C8\u3092\u751F\u6210\u3002",
+    useCaseKo: "\uC778\uAE30 \uD1A0\uD53D\xB7\uC131\uC7A5\xB7\uC720\uC9C0\uC728 \uB4F1 \uC774\uD574\uAD00\uACC4\uC790\uC6A9 \uAC00\uB3C5\uC131 \uC788\uB294 \uBCF4\uACE0\uC11C\uB97C \uC0DD\uC131\uD569\uB2C8\uB2E4.",
     codePreview: `const r = new MemoryReport();
 r.generate('Q1 Memory', { ltm: 1000, stm: 50 });  // markdown
 r.toCSV({ a: 1 });  // 'metric,value\\n...'
@@ -1988,11 +2132,17 @@ r.toCSV({ a: 1 });  // 'metric,value\\n...'
     id: "MemoryBenchmark",
     name: "MemoryBenchmark",
     nameZh: "\u8BB0\u5FC6\u57FA\u51C6",
+    nameJa: "\u8A18\u61B6\u30D9\u30F3\u30C1\u30DE\u30FC\u30AF",
+    nameKo: "\uAE30\uC5B5 \uBCA4\uCE58\uB9C8\uD06C",
     layer: "integration",
     description: "Per-method benchmark tracker with best-result selection.",
     descriptionZh: "\u6BCF\u4E2A\u65B9\u6CD5\u57FA\u51C6\u8FFD\u8E2A + \u6700\u4F18\u9009\u62E9\u3002",
+    descriptionJa: "\u5404\u30E1\u30BD\u30C3\u30C9\u306E\u30D9\u30F3\u30C1\u30DE\u30FC\u30AF\u8FFD\u8DE1 + \u6700\u826F\u7D50\u679C\u306E\u9078\u629E\u3002",
+    descriptionKo: "\uAC01 \uBA54\uC11C\uB4DC\uC758 \uBCA4\uCE58\uB9C8\uD06C \uCD94\uC801 + \uCD5C\uC801 \uACB0\uACFC \uC120\uD0DD.",
     useCase: "Compare memory implementations (episodic vs semantic) and pick best by score.",
     useCaseZh: "\u5BF9\u6BD4\u5185\u5B58\u5B9E\u73B0\uFF08\u5982 episodic vs semantic\uFF09\u5E76\u6309\u5206\u6570\u9009\u51FA\u6700\u4F18\u3002",
+    useCaseJa: "\u8A18\u61B6\u5B9F\u88C5\uFF08\u30A8\u30D4\u30BD\u30FC\u30C9\u578B vs \u30BB\u30DE\u30F3\u30C6\u30A3\u30C3\u30AF\u578B\uFF09\u3092\u30B9\u30B3\u30A2\u3067\u6BD4\u8F03\u3057\u6700\u826F\u3092\u63A1\u7528\u3002",
+    useCaseKo: "\uAE30\uC5B5 \uAD6C\uD604(\uC5D0\uD53C\uC18C\uB4DC\uD615 vs \uC2DC\uB9E8\uD2F1\uD615)\uC744 \uC810\uC218\uB85C \uBE44\uAD50\uD558\uC5EC \uCD5C\uC801\uC744 \uCC44\uD0DD\uD569\uB2C8\uB2E4.",
     codePreview: `const b = new MemoryBenchmark();
 b.record('episodic', 0.85).record('semantic', 0.95);
 b.best();  // { name: 'semantic', score: 0.95 }`,
@@ -2004,11 +2154,17 @@ b.best();  // { name: 'semantic', score: 0.95 }`,
     id: "MemoryCoreIndex",
     name: "MemoryCoreIndex",
     nameZh: "\u8BB0\u5FC6\u6838\u5FC3\u7D22\u5F15",
+    nameJa: "\u8A18\u61B6\u30B3\u30A2\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9",
+    nameKo: "\uAE30\uC5B5 \uCF54\uC5B4 \uC778\uB371\uC2A4",
     layer: "integration",
     description: "Batch 1/3 index of all 10 core memory engines.",
     descriptionZh: "10 \u4E2A\u6838\u5FC3\u5F15\u64CE\u7684\u6279\u6B21\u7D22\u5F15\u3002",
+    descriptionJa: "10\u500B\u306E\u30B3\u30A2\u30A8\u30F3\u30B8\u30F3\u306E\u30D0\u30C3\u30C1 1/3 \u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3002",
+    descriptionKo: "\uCF54\uC5B4 \uC5D4\uC9C4 10\uAC1C\uC758 \uBC30\uCE58 1/3 \uC778\uB371\uC2A4.",
     useCase: "Enumerate core engines for registry listings or dynamic discovery.",
     useCaseZh: "\u679A\u4E3E\u6838\u5FC3\u5F15\u64CE\u7528\u4E8E\u6CE8\u518C\u8868\u5217\u8868\u6216\u52A8\u6001\u53D1\u73B0\u3002",
+    useCaseJa: "\u30B3\u30A2\u30A8\u30F3\u30B8\u30F3\u306E\u5217\u6319\u7528\uFF08\u30EC\u30B8\u30B9\u30C8\u30EA\u63B2\u8F09\u307E\u305F\u306F\u52D5\u7684\u63A2\u7D22\uFF09\u3002",
+    useCaseKo: "\uCF54\uC5B4 \uC5D4\uC9C4\uC744 \uC5F4\uAC70(\uB808\uC9C0\uC2A4\uD2B8\uB9AC \uAC8C\uC7AC \uB610\uB294 \uB3D9\uC801 \uD0D0\uC0C9).",
     codePreview: `new MemoryCoreIndex().list();
 // ['EpisodicStore', 'SemanticIndex', 'ProceduralCache', ...]`,
     pulled: 5400,
@@ -2019,11 +2175,17 @@ b.best();  // { name: 'semantic', score: 0.95 }`,
     id: "MemoryAdvancedIndex",
     name: "MemoryAdvancedIndex",
     nameZh: "\u8BB0\u5FC6\u9AD8\u7EA7\u7D22\u5F15",
+    nameJa: "\u8A18\u61B6\u30A2\u30C9\u30D0\u30F3\u30B9\u30C9\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9",
+    nameKo: "\uAE30\uC5B5 \uACE0\uAE09 \uC778\uB371\uC2A4",
     layer: "integration",
     description: "Batch 2/3 index of all 10 advanced memory engines.",
     descriptionZh: "10 \u4E2A\u9AD8\u7EA7\u5F15\u64CE\u7684\u6279\u6B21\u7D22\u5F15\u3002",
+    descriptionJa: "10\u500B\u306E\u30A2\u30C9\u30D0\u30F3\u30B9\u30C9\u30A8\u30F3\u30B8\u30F3\u306E\u30D0\u30C3\u30C1 2/3 \u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3002",
+    descriptionKo: "\uACE0\uAE09 \uC5D4\uC9C4 10\uAC1C\uC758 \uBC30\uCE58 2/3 \uC778\uB371\uC2A4.",
     useCase: "Same as Core index but for the advanced batch.",
     useCaseZh: "\u540C\u4E0A\u4F46\u9488\u5BF9\u9AD8\u7EA7\u6279\u6B21\u3002",
+    useCaseJa: "\u30A2\u30C9\u30D0\u30F3\u30B9\u30C9\u30D0\u30C3\u30C1\u7248\u3002\u524D\u8FF0\u306E Core \u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3068\u540C\u3058\u4F7F\u3044\u65B9\u3002",
+    useCaseKo: "\uACE0\uAE09 \uBC30\uCE58 \uBC84\uC804. \uCF54\uC5B4 \uC778\uB371\uC2A4\uC640 \uB3D9\uC77C\uD558\uAC8C \uC0AC\uC6A9.",
     codePreview: `new MemoryAdvancedIndex().count();  // 10`,
     pulled: 4900,
     ratingSum: 25,
@@ -2033,11 +2195,17 @@ b.best();  // { name: 'semantic', score: 0.95 }`,
     id: "MemoryMasterIndex",
     name: "MemoryMasterIndex",
     nameZh: "\u8BB0\u5FC6\u4E3B\u7D22\u5F15",
+    nameJa: "\u8A18\u61B6\u30DE\u30B9\u30BF\u30FC\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9",
+    nameKo: "\uAE30\uC5B5 \uB9C8\uC2A4\uD130 \uC778\uB371\uC2A4",
     layer: "integration",
     description: "Top-level master index of all 29 memory engines across all 3 batches.",
     descriptionZh: "38 \u4E2A\u8BB0\u5FC6\u5F15\u64CE\u7684\u9876\u5C42\u4E3B\u7D22\u5F15\u3002",
+    descriptionJa: "\u516838\u500B\u306E\u8A18\u61B6\u30A8\u30F3\u30B8\u30F3\u3092\u7DB2\u7F85\u3059\u308B\u30C8\u30C3\u30D7\u30EC\u30D9\u30EB\u306E\u30DE\u30B9\u30BF\u30FC\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3002",
+    descriptionKo: "38\uAC1C\uC758 \uAE30\uC5B5 \uC5D4\uC9C4\uC744 \uC544\uC6B0\uB974\uB294 \uCD5C\uC0C1\uC704 \uB9C8\uC2A4\uD130 \uC778\uB371\uC2A4.",
     useCase: "Single registry for dynamic discovery of any agent-memory engine.",
     useCaseZh: "\u7528\u4E8E\u52A8\u6001\u53D1\u73B0\u4EFB\u4F55 agent-memory \u5F15\u64CE\u7684\u5355\u4E00\u6CE8\u518C\u8868\u3002",
+    useCaseJa: "\u4EFB\u610F\u306E agent-memory \u30A8\u30F3\u30B8\u30F3\u3092\u52D5\u7684\u306B\u767A\u898B\u3059\u308B\u305F\u3081\u306E\u5358\u4E00\u30EC\u30B8\u30B9\u30C8\u30EA\u3002",
+    useCaseKo: "\uBAA8\uB4E0 agent-memory \uC5D4\uC9C4\uC744 \uB3D9\uC801\uC73C\uB85C \uBC1C\uACAC\uD558\uAE30 \uC704\uD55C \uB2E8\uC77C \uB808\uC9C0\uC2A4\uD2B8\uB9AC\uC785\uB2C8\uB2E4.",
     codePreview: `new MemoryMasterIndex().count();  // 29
 new MemoryMasterIndex().has('EpisodicStore');  // true`,
     pulled: 6100,
@@ -2048,11 +2216,17 @@ new MemoryMasterIndex().has('EpisodicStore');  // true`,
     id: "VectorEmbedder",
     name: "VectorEmbedder",
     nameZh: "\u5411\u91CF\u5D4C\u5165\u5668",
+    nameJa: "\u30D9\u30AF\u30C8\u30EB\u30A8\u30F3\u30D9\u30C3\u30C0\u30FC",
+    nameKo: "\uBCA1\uD130 \uC784\uBCA0\uB354",
     layer: "memvector",
     description: "Deterministic pseudo-random embedding (text \u2192 vector + project).",
     descriptionZh: "\u786E\u5B9A\u6027\u5D4C\u5165\uFF1A\u6587\u672C/\u6807\u7B7E \u2192 \u56FA\u5B9A\u7EF4\u5EA6\u5411\u91CF + \u6295\u5F71\u3002",
+    descriptionJa: "\u6C7A\u5B9A\u8AD6\u7684\u64EC\u4F3C\u30E9\u30F3\u30C0\u30E0\u30A8\u30F3\u30D9\u30C3\u30C7\u30A3\u30F3\u30B0\uFF08\u30C6\u30AD\u30B9\u30C8 \u2192 \u30D9\u30AF\u30C8\u30EB + \u6295\u5F71\uFF09\u3002",
+    descriptionKo: "\uACB0\uC815\uB860\uC801 \uC758\uC0AC \uB09C\uC218 \uC784\uBCA0\uB529(\uD14D\uC2A4\uD2B8 \u2192 \uBCA1\uD130 + \uD22C\uC0AC).",
     useCase: "Convert text/tag inputs to fixed-dimension vectors for similarity search.",
     useCaseZh: "\u5C06\u6587\u672C/\u6807\u7B7E\u8F93\u5165\u8F6C\u4E3A\u56FA\u5B9A\u7EF4\u5EA6\u5411\u91CF\uFF0C\u7528\u4E8E\u76F8\u4F3C\u6027\u641C\u7D22\u3002",
+    useCaseJa: "\u30C6\u30AD\u30B9\u30C8/\u30BF\u30B0\u5165\u529B\u3092\u56FA\u5B9A\u6B21\u5143\u306E\u30D9\u30AF\u30C8\u30EB\u306B\u5909\u63DB\u3057\u3001\u985E\u4F3C\u691C\u7D22\u306B\u4F7F\u7528\u3057\u307E\u3059\u3002",
+    useCaseKo: "\uD14D\uC2A4\uD2B8/\uD0DC\uADF8 \uC785\uB825\uC744 \uACE0\uC815 \uCC28\uC6D0 \uBCA1\uD130\uB85C \uBCC0\uD658\uD558\uC5EC \uC720\uC0AC\uB3C4 \uAC80\uC0C9\uC5D0 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.",
     codePreview: `const e = new VectorEmbedder(64);
 const v = e.embedText('hello world');  // { dim: 64, values: [0.012, -0.034, ...] }
 e.project(v.values, 32);  // projection to 32 dims`,
@@ -2064,11 +2238,17 @@ e.project(v.values, 32);  // projection to 32 dims`,
     id: "HNSWIndex",
     name: "HNSWIndex",
     nameZh: "HNSW \u7D22\u5F15",
+    nameJa: "HNSW\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9",
+    nameKo: "HNSW \uC778\uB371\uC2A4",
     layer: "memvector",
     description: "Simplified HNSW-style graph: K-NN inserts + beam query with cosine similarity.",
     descriptionZh: "HNSW \u98CE\u683C ANN\uFF1AK-NN \u63D2\u5165 + \u6CE2\u675F\u67E5\u8BE2\u3002",
+    descriptionJa: "HNSW \u98A8\u30B0\u30E9\u30D5\uFF1AK-NN \u633F\u5165 + \u30B3\u30B5\u30A4\u30F3\u985E\u4F3C\u5EA6\u306B\u3088\u308B\u30D3\u30FC\u30E0\u30AF\u30A8\u30EA\u3002",
+    descriptionKo: "HNSW \uC2A4\uD0C0\uC77C \uADF8\uB798\uD504: K-NN \uC0BD\uC785 + \uCF54\uC0AC\uC778 \uC720\uC0AC\uB3C4\uB97C \uC0AC\uC6A9\uD55C \uBE54 \uCFFC\uB9AC.",
     useCase: "Build a scalable ANN index over memory embeddings for fast top-K retrieval.",
     useCaseZh: "\u4E3A\u8BB0\u5FC6\u5D4C\u5165\u6784\u5EFA\u53EF\u6269\u5C55 ANN \u7D22\u5F15\uFF0C\u5B9E\u73B0\u5FEB\u901F top-K \u68C0\u7D22\u3002",
+    useCaseJa: "\u8A18\u61B6\u30A8\u30F3\u30D9\u30C3\u30C7\u30A3\u30F3\u30B0\u4E0A\u306B\u30B9\u30B1\u30FC\u30E9\u30D6\u30EB\u306A ANN \u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3092\u69CB\u7BC9\u3001\u9AD8\u901F top-K \u691C\u7D22\u3092\u5B9F\u73FE\u3002",
+    useCaseKo: "\uAE30\uC5B5 \uC784\uBCA0\uB529 \uC704\uC5D0 \uD655\uC7A5 \uAC00\uB2A5\uD55C ANN \uC778\uB371\uC2A4\uB97C \uAD6C\uCD95\uD558\uC5EC \uBE60\uB978 top-K \uAC80\uC0C9\uC744 \uAD6C\uD604\uD569\uB2C8\uB2E4.",
     codePreview: `const idx = new HNSWIndex(16, 3);
 idx.insert('a', [1, 0, 0]); idx.insert('b', [1, 0, 0.1]);
 idx.query([1, 0, 0], 2);  // returns [{id: 'a', score: 1.0}, {id: 'b', score: 0.99}]`,
@@ -2080,11 +2260,17 @@ idx.query([1, 0, 0], 2);  // returns [{id: 'a', score: 1.0}, {id: 'b', score: 0.
     id: "PQCompressor",
     name: "PQCompressor",
     nameZh: "PQ \u538B\u7F29\u5668",
+    nameJa: "PQ \u30B3\u30F3\u30D7\u30EC\u30C3\u30B5\u30FC",
+    nameKo: "PQ \uCEF4\uD504\uB808\uC11C",
     layer: "memvector",
     description: "Product Quantization: split vector into K sub-vectors, store centroid id (1 byte each).",
     descriptionZh: "Product Quantization\uFF1A\u628A\u5411\u91CF\u5207\u6210 K \u4E2A\u5B50\u5411\u91CF\uFF0C\u6BCF\u5B50\u5411\u91CF\u5B58 1 \u5B57\u8282\u4E2D\u5FC3 ID\u3002",
+    descriptionJa: "Product Quantization\uFF1A\u30D9\u30AF\u30C8\u30EB\u3092 K \u500B\u306E\u30B5\u30D6\u30D9\u30AF\u30C8\u30EB\u306B\u5206\u5272\u3057\u3001\u5404\u30BB\u30F3\u30C8\u30ED\u30A4\u30C9 ID \u3092 1 \u30D0\u30A4\u30C8\u3067\u4FDD\u5B58\u3002",
+    descriptionKo: "Product Quantization: \uBCA1\uD130\uB97C K \uAC1C\uC758 \uC11C\uBE0C \uBCA1\uD130\uB85C \uBD84\uD560, \uAC01 \uC13C\uD2B8\uB85C\uC774\uB4DC ID \uB97C 1 \uBC14\uC774\uD2B8\uB85C \uC800\uC7A5.",
     useCase: "Compress memory embeddings to 1/8 size with ~90% recall retention for ANN search.",
     useCaseZh: "\u628A\u8BB0\u5FC6\u5D4C\u5165\u538B\u7F29\u5230 1/8 \u5927\u5C0F\uFF0C\u53EC\u56DE ~90%\u3002",
+    useCaseJa: "\u8A18\u61B6\u30A8\u30F3\u30D9\u30C3\u30C7\u30A3\u30F3\u30B0\u3092 1/8 \u30B5\u30A4\u30BA\u306B\u5727\u7E2E\u3057\u3001ANN \u691C\u7D22\u3067\u7D04 90% \u306E\u518D\u73FE\u7387\u3092\u7DAD\u6301\u3002",
+    useCaseKo: "\uAE30\uC5B5 \uC784\uBCA0\uB529\uC744 1/8 \uD06C\uAE30\uB85C \uC555\uCD95\uD558\uACE0 ANN \uAC80\uC0C9\uC5D0\uC11C \uC57D 90% \uC7AC\uD604\uC728\uC744 \uC720\uC9C0\uD569\uB2C8\uB2E4.",
     codePreview: `const c = new PQCompressor(4);  // 4 sub-vectors
 const v = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8];
 const codes = c.compress(v);  // [byte, byte, byte, byte]
@@ -2097,11 +2283,17 @@ c.compressionRatio(8);  // 0.5`,
     id: "HybridSearcher",
     name: "HybridSearcher",
     nameZh: "\u6DF7\u5408\u68C0\u7D22\u5668",
+    nameJa: "\u30CF\u30A4\u30D6\u30EA\u30C3\u30C9\u691C\u7D22",
+    nameKo: "\uD558\uC774\uBE0C\uB9AC\uB4DC \uAC80\uC0C9",
     layer: "memvector",
     description: "Combine tag-match (Jaccard) + vector similarity with tunable \u03B1.",
     descriptionZh: "\u7ED3\u5408\u6807\u7B7E\u5339\u914D\uFF08Jaccard\uFF09+ \u5411\u91CF\u76F8\u4F3C\u5EA6\uFF0C\u53EF\u8C03 \u03B1\u3002",
+    descriptionJa: "\u30BF\u30B0\u30DE\u30C3\u30C1\uFF08Jaccard\uFF09+ \u30D9\u30AF\u30C8\u30EB\u985E\u4F3C\u5EA6\u3092 \u03B1 \u3067\u8ABF\u6574\u53EF\u80FD\u3002",
+    descriptionKo: "\uD0DC\uADF8 \uB9E4\uCE6D(Jaccard) + \uBCA1\uD130 \uC720\uC0AC\uB3C4\uB97C \u03B1 \uB85C \uC870\uC815 \uAC00\uB2A5.",
     useCase: "Get the best of both worlds: combine tag-based metadata search with semantic vector similarity.",
     useCaseZh: "\u53D6\u957F\u8865\u77ED\uFF1A\u7ED3\u5408\u57FA\u4E8E\u6807\u7B7E\u7684\u5143\u6570\u636E\u68C0\u7D22\u4E0E\u8BED\u4E49\u5411\u91CF\u76F8\u4F3C\u6027\u3002",
+    useCaseJa: "\u4E21\u8005\u306E\u9577\u6240\u3092\u7D44\u307F\u5408\u308F\u305B\u305F\u691C\u7D22\uFF1A\u30BF\u30B0\u30D9\u30FC\u30B9\u306E\u30E1\u30BF\u30C7\u30FC\u30BF\u691C\u7D22 + \u30BB\u30DE\u30F3\u30C6\u30A3\u30C3\u30AF\u306A\u30D9\u30AF\u30C8\u30EB\u985E\u4F3C\u5EA6\u3002",
+    useCaseKo: "\uC591\uCABD\uC758 \uC7A5\uC810\uC744 \uACB0\uD569\uD55C \uAC80\uC0C9: \uD0DC\uADF8 \uAE30\uBC18 \uBA54\uD0C0\uB370\uC774\uD130 + \uC2DC\uB9E8\uD2F1 \uBCA1\uD130 \uC720\uC0AC\uB3C4.",
     codePreview: `const h = new HybridSearcher();
 h.search('python', [1, 0, 0], items, { alpha: 0.5 });
 // alpha=1 \u2192 pure tag, alpha=0 \u2192 pure vector
@@ -2114,11 +2306,17 @@ h.tuneAlpha(...);  // grid-search best \u03B1 over ground-truth hits`,
     id: "VectorCache",
     name: "VectorCache",
     nameZh: "\u5411\u91CF\u7F13\u5B58",
+    nameJa: "\u30D9\u30AF\u30C8\u30EB\u30AD\u30E3\u30C3\u30B7\u30E5",
+    nameKo: "\uBCA1\uD130 \uCE90\uC2DC",
     layer: "memvector",
     description: "LRU cache for query/embedding key-value lookups with hit-rate tracking.",
     descriptionZh: "\u6309\u952E\u503C\u67E5\u8BE2\u5D4C\u5165\u7684 LRU \u7F13\u5B58 + \u547D\u4E2D\u7387\u8FFD\u8E2A\u3002",
+    descriptionJa: "\u30D2\u30C3\u30C8\u7387\u8FFD\u8DE1\u4ED8\u304D\u306E\u30AF\u30A8\u30EA\uFF0F\u30A8\u30F3\u30D9\u30C3\u30C7\u30A3\u30F3\u30B0 K/V LRU \u30AD\u30E3\u30C3\u30B7\u30E5\u3002",
+    descriptionKo: "\uC801\uC911\uB960 \uCD94\uC801\uC774 \uC788\uB294 \uCFFC\uB9AC/\uC784\uBCA0\uB529 K/V LRU \uCE90\uC2DC.",
     useCase: "Skip recomputing embeddings for repeated queries. Track cache hit-rate to tune policy.",
     useCaseZh: "\u8DF3\u8FC7\u91CD\u590D\u67E5\u8BE2\u7684\u5D4C\u5165\u91CD\u65B0\u8BA1\u7B97\uFF1B\u8FFD\u8E2A\u547D\u4E2D\u7387\u4EE5\u8C03\u4F18\u7B56\u7565\u3002",
+    useCaseJa: "\u540C\u4E00\u30AF\u30A8\u30EA\u306E\u518D\u30A8\u30F3\u30D9\u30C3\u30C7\u30A3\u30F3\u30B0\u8A08\u7B97\u3092\u30B9\u30AD\u30C3\u30D7\u3002\u30D2\u30C3\u30C8\u7387\u3092\u8A08\u6E2C\u3057\u3066\u30DD\u30EA\u30B7\u30FC\u8ABF\u6574\u3002",
+    useCaseKo: "\uB3D9\uC77C \uCFFC\uB9AC\uC758 \uC7AC\uC784\uBCA0\uB529 \uACC4\uC0B0\uC744 \uAC74\uB108\uB701\uB2C8\uB2E4. \uC801\uC911\uB960\uC744 \uCE21\uC815\uD558\uC5EC \uC815\uCC45 \uC870\uC815.",
     codePreview: `const c = new VectorCache(256);
 c.set('python-query', [embed1, embed2, ...]);
 c.get('python-query');  // hit
@@ -2131,11 +2329,17 @@ c.hitRate();  // 0.94`,
     id: "VectorMigrator",
     name: "VectorMigrator",
     nameZh: "\u5411\u91CF\u8FC1\u79FB\u5668",
+    nameJa: "\u30D9\u30AF\u30C8\u30EB\u30DE\u30A4\u30B0\u30EC\u30FC\u30BF\u30FC",
+    nameKo: "\uBCA1\uD130 \uB9C8\uC774\uADF8\uB808\uC774\uD130",
     layer: "memvector",
     description: "Migrate vectors between embedding dimensions (model upgrades, PCA, project).",
     descriptionZh: "\u8DE8\u5D4C\u5165\u7EF4\u5EA6\u7684\u8FC1\u79FB\uFF08\u6A21\u578B\u5347\u7EA7\u3001PCA\u3001\u6295\u5F71\uFF09\u3002",
+    descriptionJa: "\u30A8\u30F3\u30D9\u30C3\u30C7\u30A3\u30F3\u30B0\u6B21\u5143\u9593\u306E\u30DE\u30A4\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3\uFF08\u30E2\u30C7\u30EB\u30A2\u30C3\u30D7\u30B0\u30EC\u30FC\u30C9\u3001PCA\u3001\u6295\u5F71\uFF09\u3002",
+    descriptionKo: "\uC784\uBCA0\uB529 \uCC28\uC6D0 \uAC04 \uB9C8\uC774\uADF8\uB808\uC774\uC158(\uBAA8\uB378 \uC5C5\uADF8\uB808\uC774\uB4DC, PCA, \uD22C\uC0AC).",
     useCase: "Upgrade from a 64-dim model to 128-dim without recomputing every embedding.",
     useCaseZh: "\u4ECE 64 \u7EF4\u6A21\u578B\u5347\u7EA7\u5230 128 \u7EF4\uFF0C\u65E0\u9700\u91CD\u65B0\u8BA1\u7B97\u6BCF\u4E2A\u5D4C\u5165\u3002",
+    useCaseJa: "64 \u6B21\u5143\u30E2\u30C7\u30EB\u304B\u3089 128 \u6B21\u5143\u30E2\u30C7\u30EB\u3078\u306E\u79FB\u884C\u3067\u3001\u5168\u30A8\u30F3\u30D9\u30C3\u30C7\u30A3\u30F3\u30B0\u3092\u518D\u8A08\u7B97\u305B\u305A\u306B\u6E08\u3080\u3002",
+    useCaseKo: "64 \uCC28\uC6D0 \uBAA8\uB378\uC5D0\uC11C 128 \uCC28\uC6D0 \uBAA8\uB378\uB85C \uC5C5\uADF8\uB808\uC774\uB4DC\uD560 \uB54C \uBAA8\uB4E0 \uC784\uBCA0\uB529\uC744 \uC7AC\uACC4\uC0B0\uD558\uC9C0 \uC54A\uC544\uB3C4 \uB429\uB2C8\uB2E4.",
     codePreview: `const m = new VectorMigrator();
 m.migrate([[1, 2, 3, 4]], 4, 8, 'random-projection');
 m.migrate([[1, 2]], 2, 5, 'pad-truncate');  // \u2192 [[1, 2, 0, 0, 0]]`,
@@ -2147,11 +2351,17 @@ m.migrate([[1, 2]], 2, 5, 'pad-truncate');  // \u2192 [[1, 2, 0, 0, 0]]`,
     id: "VectorNormalizer",
     name: "VectorNormalizer",
     nameZh: "\u5411\u91CF\u5F52\u4E00\u5316\u5668",
+    nameJa: "\u30D9\u30AF\u30C8\u30EB\u30CE\u30FC\u30DE\u30E9\u30A4\u30B6\u30FC",
+    nameKo: "\uBCA1\uD130 \uC815\uADDC\uD654\uAE30",
     layer: "memvector",
     description: "L2 / minmax / z-score normalization helpers.",
     descriptionZh: "L2 + minmax + z-score \u5F52\u4E00\u5316\u8F85\u52A9\u65B9\u6CD5\u3002",
+    descriptionJa: "L2 / minmax / z-score \u6B63\u898F\u5316\u30D8\u30EB\u30D1\u30FC\u3002",
+    descriptionKo: "L2 / minmax / z-score \uC815\uADDC\uD654 \uD5EC\uD37C.",
     useCase: "Pre-process vectors before cosine similarity (L2) or range-bound features (minmax).",
     useCaseZh: "\u5728\u4F59\u5F26\u76F8\u4F3C\u5EA6\uFF08L2\uFF09\u6216\u8303\u56F4\u7279\u5F81\uFF08minmax\uFF09\u524D\u9884\u5904\u7406\u5411\u91CF\u3002",
+    useCaseJa: "\u30B3\u30B5\u30A4\u30F3\u985E\u4F3C\u5EA6\uFF08L2\uFF09\u3084\u7BC4\u56F2\u7279\u5FB4\uFF08minmax\uFF09\u306E\u524D\u306B\u30D9\u30AF\u30C8\u30EB\u3092\u524D\u51E6\u7406\u3002",
+    useCaseKo: "\uCF54\uC0AC\uC778 \uC720\uC0AC\uB3C4(L2) \uB610\uB294 \uBC94\uC704 \uD2B9\uC9D5(minmax) \uC804\uC5D0 \uBCA1\uD130\uB97C \uC804\uCC98\uB9AC.",
     codePreview: `VectorNormalizer.normalize([3, 4]);  // [0.6, 0.8]
 VectorNormalizer.minMax([1, 2, 3]);  // [0, 0.5, 1]
 VectorNormalizer.zScore([1, 2, 3]);  // [-1, 0, +1] (mean 0, std 1)`,
@@ -2163,11 +2373,17 @@ VectorNormalizer.zScore([1, 2, 3]);  // [-1, 0, +1] (mean 0, std 1)`,
     id: "CosineSim",
     name: "CosineSim",
     nameZh: "\u4F59\u5F26\u76F8\u4F3C\u5EA6",
+    nameJa: "\u30B3\u30B5\u30A4\u30F3\u985E\u4F3C\u5EA6",
+    nameKo: "\uCF54\uC0AC\uC778 \uC720\uC0AC\uB3C4",
     layer: "memvector",
     description: "Cosine similarity + L2 distance + topK helper.",
     descriptionZh: "\u4F59\u5F26\u76F8\u4F3C\u5EA6 + L2 \u8DDD\u79BB + topK \u8F85\u52A9\u51FD\u6570\u3002",
+    descriptionJa: "\u30B3\u30B5\u30A4\u30F3\u985E\u4F3C\u5EA6 + L2 \u8DDD\u96E2 + topK \u30D8\u30EB\u30D1\u30FC\u3002",
+    descriptionKo: "\uCF54\uC0AC\uC778 \uC720\uC0AC\uB3C4 + L2 \uAC70\uB9AC + topK \uD5EC\uD37C.",
     useCase: "Standalone similarity helper usable without a full index.",
     useCaseZh: "\u65E0\u9700\u5B8C\u6574\u7D22\u5F15\u7684\u72EC\u7ACB\u76F8\u4F3C\u5EA6\u8BA1\u7B97 helper\u3002",
+    useCaseJa: "\u5B8C\u5168\u306A\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u306A\u3057\u3067\u5358\u4F53\u3067\u4F7F\u3048\u308B\u985E\u4F3C\u5EA6\u30D8\u30EB\u30D1\u30FC\u3002",
+    useCaseKo: "\uC804\uCCB4 \uC778\uB371\uC2A4 \uC5C6\uC774 \uB3C5\uB9BD\uC801\uC73C\uB85C \uC0AC\uC6A9\uD560 \uC218 \uC788\uB294 \uC720\uC0AC\uB3C4 \uD5EC\uD37C\uC785\uB2C8\uB2E4.",
     codePreview: `const c = new CosineSim();
 c.similarity([1, 0, 0], [1, 0, 0]);  // 1.0
 c.distance([1, 0], [4, 3]);             // 5.0
@@ -2180,11 +2396,17 @@ c.topK([1, 0], [[1, 0], [0, 1], [0.5, 0.5]], 2);  // [0, 2]`,
     id: "DistanceMetric",
     name: "DistanceMetric",
     nameZh: "\u8DDD\u79BB\u5EA6\u91CF",
+    nameJa: "\u8DDD\u96E2\u30E1\u30C8\u30EA\u30C3\u30AF",
+    nameKo: "\uAC70\uB9AC \uBA54\uD2B8\uB9AD",
     layer: "memvector",
     description: "Static helpers: cosine, euclidean, dot product.",
     descriptionZh: "\u9759\u6001 helpers\uFF1Acosine\u3001euclidean\u3001dot product\u3002",
+    descriptionJa: "\u9759\u7684\u30D8\u30EB\u30D1\u30FC\uFF1A\u30B3\u30B5\u30A4\u30F3\u3001\u30E6\u30FC\u30AF\u30EA\u30C3\u30C9\u3001\u30C9\u30C3\u30C8\u7A4D\u3002",
+    descriptionKo: "\uC815\uC801 \uD5EC\uD37C: \uCF54\uC0AC\uC778, \uC720\uD074\uB9AC\uB4DC, \uB0B4\uC801.",
     useCase: "Inline distance functions without instantiating classes.",
     useCaseZh: "\u5185\u8054\u8DDD\u79BB\u8BA1\u7B97 helper\uFF0C\u65E0\u9700\u5B9E\u4F8B\u5316\u7C7B\u3002",
+    useCaseJa: "\u30AF\u30E9\u30B9\u3092\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u5316\u305B\u305A\u306B\u30A4\u30F3\u30E9\u30A4\u30F3\u8DDD\u96E2\u95A2\u6570\u3092\u63D0\u4F9B\u3002",
+    useCaseKo: "\uD074\uB798\uC2A4\uB97C \uC778\uC2A4\uD134\uC2A4\uD654\uD558\uC9C0 \uC54A\uACE0 \uC778\uB77C\uC778 \uAC70\uB9AC \uD568\uC218\uB97C \uC81C\uACF5\uD569\uB2C8\uB2E4.",
     codePreview: `DistanceMetric.cosine([1, 0], [0, 1]);   // 0
 DistanceMetric.euclidean([1, 0], [4, 3]);  // 5
 DistanceMetric.dot([1, 2, 3], [4, 5, 6]);   // 32`,
@@ -2196,11 +2418,17 @@ DistanceMetric.dot([1, 2, 3], [4, 5, 6]);   // 32`,
     id: "MemVectorCoreIndex",
     name: "MemVectorCoreIndex",
     nameZh: "MemVector \u6838\u5FC3\u7D22\u5F15",
+    nameJa: "MemVector \u30B3\u30A2\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9",
+    nameKo: "MemVector \uCF54\uC5B4 \uC778\uB371\uC2A4",
     layer: "memvector",
     description: "Batch index of all 11 MemVector engines (MemVector core batch).",
     descriptionZh: "MemVector \u6279\u6B21\uFF0811 \u4E2A\uFF09\u5F15\u64CE\u7684\u7D22\u5F15\u3002",
+    descriptionJa: "MemVector \u5C64 11 \u500B\u306E\u30A8\u30F3\u30B8\u30F3\u306E\u30D0\u30C3\u30C1\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3002",
+    descriptionKo: "MemVector \uB808\uC774\uC5B4 11 \uAC1C \uC5D4\uC9C4\uC758 \uBC30\uCE58 \uC778\uB371\uC2A4.",
     useCase: "Enumerate the MemVector layer engines for registry listings or dynamic discovery.",
     useCaseZh: "\u5217\u4E3E MemVector \u5C42\u7EA7\u5F15\u64CE\u7528\u4E8E\u6CE8\u518C\u8868\u5217\u8868\u6216\u52A8\u6001\u53D1\u73B0\u3002",
+    useCaseJa: "MemVector \u5C64\u30A8\u30F3\u30B8\u30F3\u3092\u5217\u6319\uFF08\u30EC\u30B8\u30B9\u30C8\u30EA\u63B2\u8F09\u307E\u305F\u306F\u52D5\u7684\u63A2\u7D22\uFF09\u3002",
+    useCaseKo: "MemVector \uB808\uC774\uC5B4 \uC5D4\uC9C4\uC744 \uC5F4\uAC70(\uB808\uC9C0\uC2A4\uD2B8\uB9AC \uAC8C\uC7AC \uB610\uB294 \uB3D9\uC801 \uD0D0\uC0C9).",
     codePreview: `new MemVectorCoreIndex().count();  // 11
 new MemVectorCoreIndex().has('VectorEmbedder');  // true
 new MemVectorCoreIndex().has('MemVectorCoreIndex');  // true (index itself)`,
@@ -3957,6 +4185,316 @@ var FEDERATED_TOOLS = [
   }
 ];
 
+// src/federated_ui/FederatedUICore.ts
+var CohortVisualizer = class {
+  _seq = 0;
+  buildTree(cohorts) {
+    const all = cohorts.list();
+    const out = [];
+    for (const c of all) {
+      this._seq += 1;
+      const members = Array.from(c.members).map((agentId) => ({
+        agentId,
+        isOwner: agentId === c.ownerAgentId
+      }));
+      out.push({
+        id: `tree_${this._seq}_${c.id}`,
+        label: c.name,
+        members,
+        depth: 0,
+        privacyLevel: c.privacyLevel,
+        meta: { cohortId: c.id, owner: c.ownerAgentId, createdAt: c.createdAt }
+      });
+    }
+    return out;
+  }
+  flatten(trees) {
+    const out = [];
+    for (const t of trees) {
+      out.push({ depth: 0, type: "cohort", id: t.id, label: t.label });
+      for (const m of t.members) {
+        out.push({ depth: 1, type: "member", id: m.agentId, label: `${m.isOwner ? "\u2605 " : ""}${m.agentId}` });
+      }
+    }
+    return out;
+  }
+  filterByPrivacy(trees, level) {
+    return trees.filter((t) => t.privacyLevel === level);
+  }
+  byMember(trees, agentId) {
+    return trees.filter((t) => t.members.some((m) => m.agentId === agentId));
+  }
+  countMembers(trees) {
+    const seen = /* @__PURE__ */ new Set();
+    let total = 0;
+    for (const t of trees) {
+      for (const m of t.members) {
+        total += 1;
+        seen.add(m.agentId);
+      }
+    }
+    return { totalMembers: total, uniqueAgents: seen.size };
+  }
+  stats() {
+    return { calls: this._seq };
+  }
+};
+var MembershipGraph = class {
+  _edges = /* @__PURE__ */ new Map();
+  // cohortId -> edges
+  _agentToCohorts = /* @__PURE__ */ new Map();
+  // agentId -> cohort set
+  build(cohorts) {
+    this._edges.clear();
+    this._agentToCohorts.clear();
+    const all = cohorts.list();
+    const out = [];
+    for (const c of all) {
+      const edges = [];
+      for (const agentId of c.members) {
+        const isOwner = agentId === c.ownerAgentId;
+        edges.push({ agentId, cohortId: c.id, isOwner });
+        out.push({ agentId, cohortId: c.id, isOwner });
+        let set = this._agentToCohorts.get(agentId);
+        if (!set) {
+          set = /* @__PURE__ */ new Set();
+          this._agentToCohorts.set(agentId, set);
+        }
+        set.add(c.id);
+      }
+      this._edges.set(c.id, edges);
+    }
+    return out;
+  }
+  cohortsForAgent(agentId) {
+    return Array.from(this._agentToCohorts.get(agentId) ?? []);
+  }
+  agentsForCohort(cohortId) {
+    return this._edges.get(cohortId)?.slice() ?? [];
+  }
+  /** BFS reachability between two agents through shared cohorts */
+  reachable(fromAgent, toAgent) {
+    if (fromAgent === toAgent) return true;
+    const visited = /* @__PURE__ */ new Set([fromAgent]);
+    const queue = [fromAgent];
+    while (queue.length > 0) {
+      const cur = queue.shift();
+      const cohorts = this.cohortsForAgent(cur);
+      for (const cohortId of cohorts) {
+        const edges = this.agentsForCohort(cohortId);
+        for (const e of edges) {
+          if (e.agentId === toAgent) return true;
+          if (!visited.has(e.agentId)) {
+            visited.add(e.agentId);
+            queue.push(e.agentId);
+          }
+        }
+      }
+    }
+    return false;
+  }
+  stats() {
+    let total = 0;
+    for (const arr of this._edges.values()) total += arr.length;
+    return { agents: this._agentToCohorts.size, cohorts: this._edges.size, edges: total };
+  }
+  reset() {
+    this._edges.clear();
+    this._agentToCohorts.clear();
+  }
+};
+var PrivacyBudgetChart = class {
+  buildStacks(budgets) {
+    const out = [];
+    for (const u of budgets.list()) {
+      const remaining = u.budgetTotal - u.budgetConsumed;
+      const utilization = u.budgetTotal === 0 ? 0 : u.budgetConsumed / u.budgetTotal;
+      out.push({
+        agentId: u.agentId,
+        totalBudget: u.budgetTotal,
+        consumed: u.budgetConsumed,
+        remaining,
+        utilization
+      });
+    }
+    return out.sort((a, b) => b.utilization - a.utilization);
+  }
+  asSvgBars(points, width = 100) {
+    const lines = [];
+    const max = Math.max(1, ...points.map((p) => p.totalBudget));
+    for (const p of points) {
+      const used = Math.round(p.consumed / max * width);
+      const total = Math.round(p.totalBudget / max * width);
+      lines.push(`${p.agentId.padEnd(12)} ${"\u2588".repeat(used)}${"\u2591".repeat(Math.max(0, total - used))} ${(p.utilization * 100).toFixed(0)}%`);
+    }
+    return lines.join("\n");
+  }
+  topConsumers(budgets, n) {
+    return this.buildStacks(budgets).slice(0, n);
+  }
+  warnThresholds(points, threshold = 0.8) {
+    return points.filter((p) => p.utilization >= threshold);
+  }
+  summary(points) {
+    if (points.length === 0) return { agents: 0, avgUtilization: 0, maxUtilization: 0, totalRemaining: 0 };
+    let avg = 0;
+    let maxU = 0;
+    let totalRem = 0;
+    for (const p of points) {
+      avg += p.utilization;
+      if (p.utilization > maxU) maxU = p.utilization;
+      totalRem += p.remaining;
+    }
+    return { agents: points.length, avgUtilization: avg / points.length, maxUtilization: maxU, totalRemaining: totalRem };
+  }
+};
+var AuditExplorer = class {
+  timeline(audit, bucketMs = 6e4) {
+    const entries = audit.query();
+    if (entries.length === 0) return [];
+    const min = entries[0].ts;
+    const max = entries[entries.length - 1].ts;
+    const count = Math.max(1, Math.ceil((max - min) / bucketMs));
+    const buckets = [];
+    for (let i = 0; i < count; i += 1) {
+      buckets.push({ ts: min + i * bucketMs, count: 0, kinds: {} });
+    }
+    for (const e of entries) {
+      const idx = Math.min(count - 1, Math.floor((e.ts - min) / bucketMs));
+      buckets[idx].count += 1;
+      buckets[idx].kinds[e.kind] = (buckets[idx].kinds[e.kind] ?? 0) + 1;
+    }
+    return buckets;
+  }
+  byKind(audit) {
+    const all = audit.query();
+    const out = {};
+    for (const e of all) {
+      out[e.kind] = (out[e.kind] ?? 0) + 1;
+    }
+    return out;
+  }
+  byAgent(audit) {
+    const all = audit.query();
+    const out = {};
+    for (const e of all) {
+      out[e.agentId] = (out[e.agentId] ?? 0) + 1;
+    }
+    return out;
+  }
+  filteredView(audit, filter = {}) {
+    return audit.query({
+      kind: filter.kinds && filter.kinds.length === 1 ? filter.kinds[0] : void 0,
+      cohortId: filter.cohortId,
+      since: filter.since
+    }).filter((e) => !filter.agentIds || filter.agentIds.includes(e.agentId));
+  }
+  stats(audit) {
+    const all = audit.query();
+    if (all.length === 0) return { total: 0, firstTs: null, lastTs: null };
+    return { total: all.length, firstTs: all[0].ts, lastTs: all[all.length - 1].ts };
+  }
+};
+var CohortReport = class {
+  markdown(title, sections) {
+    const out = [`# ${title}`, ""];
+    for (const s of sections) {
+      out.push(`## ${s.heading}`, "");
+      for (const l of s.lines) out.push(`- ${l}`);
+      out.push("");
+    }
+    return out.join("\n");
+  }
+  csv(rows, columns) {
+    if (rows.length === 0) return columns.join(",");
+    const header = columns.join(",");
+    const body = rows.map((r) => columns.map((c) => this._csvValue(r[c])).join(",")).join("\n");
+    return `${header}
+${body}`;
+  }
+  cohortSection(cohorts) {
+    const all = cohorts.list();
+    return {
+      heading: "Cohorts",
+      lines: all.map((c) => `Cohort **${c.name}** (${c.privacyLevel}) \u2014 owner: ${c.ownerAgentId}, members: ${c.members.size}`)
+    };
+  }
+  budgetSection(budgets) {
+    const all = budgets.list();
+    return {
+      heading: "Privacy Budgets",
+      lines: all.map((u) => `Agent **${u.agentId}** \u2014 ${u.budgetConsumed}/${u.budgetTotal} consumed (${u.budgetTotal > 0 ? (u.budgetConsumed / u.budgetTotal * 100).toFixed(1) : "0"}%)`)
+    };
+  }
+  auditSection(audit, limit = 10) {
+    const recent = audit.recent(limit);
+    return {
+      heading: `Recent Audit (last ${limit})`,
+      lines: recent.map((e) => `\`${e.kind}\` agent:${e.agentId} cohort:${e.cohortId}${e.reason ? " reason:" + e.reason : ""}`)
+    };
+  }
+  _csvValue(v) {
+    if (v === null || v === void 0) return "";
+    const s = String(v);
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  }
+};
+var FEDERATED_UI_ENGINES = [
+  "CohortVisualizer",
+  "MembershipGraph",
+  "PrivacyBudgetChart",
+  "AuditExplorer",
+  "CohortReport",
+  "FederatedCohortsUIMasterIndex"
+];
+var FederatedCohortsUIMasterIndex = class {
+  _items = [];
+  constructor() {
+    for (const name of FEDERATED_UI_ENGINES) {
+      this._items.push({ name, layer: "federated_ui", version: "V5681+" });
+    }
+  }
+  list() {
+    return this._items.slice();
+  }
+  count() {
+    return this._items.length;
+  }
+  byName(name) {
+    return this._items.find((i) => i.name === name);
+  }
+};
+var COHORT_UI_TOOLS = [
+  {
+    name: "CohortVisualizer.buildTree",
+    description: "Build a hierarchical cohort tree visualization",
+    inputSchema: { type: "object", properties: { cohortId: { type: "string", description: "Specific cohort id (optional, omit for all)" } }, required: [] }
+  },
+  {
+    name: "MembershipGraph.stats",
+    description: "Get the membership graph statistics (agents/cohorts/edges)",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  },
+  {
+    name: "PrivacyBudgetChart.summary",
+    description: "Get the privacy budget summary (avg/max utilization + remaining)",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  },
+  {
+    name: "AuditExplorer.byKind",
+    description: "Count audit entries grouped by kind (share/read/deny/etc)",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  },
+  {
+    name: "CohortReport.markdown",
+    description: "Generate a markdown cohort report",
+    inputSchema: { type: "object", properties: { title: { type: "string", description: "Report title" } }, required: [] }
+  }
+];
+
 // src/mcp/MCPServer.ts
 var MCPServer = class {
   _tools = [];
@@ -3990,6 +4528,7 @@ var MCPServer = class {
       ...STREAMING_TOOLS,
       ...PLAYBACK_TOOLS,
       ...FEDERATED_TOOLS,
+      ...COHORT_UI_TOOLS,
       {
         name: "EpisodicStore.record",
         description: "Append-only timestamped episode ledger with importance scoring.",
@@ -4552,6 +5091,51 @@ var MCPServer = class {
           b.consume("cli", 3);
           return { content: [{ type: "text", text: JSON.stringify({ stats: b.stats() }) }] };
         }
+        case "CohortVisualizer.buildTree": {
+          const c = new FederatedCohort();
+          c.create("cli-tree-cohort", "agent-cli");
+          const v = new CohortVisualizer();
+          const trees = v.buildTree(c);
+          return { content: [{ type: "text", text: JSON.stringify({ trees: trees.length, members: v.countMembers(trees).totalMembers }) }] };
+        }
+        case "MembershipGraph.stats": {
+          const c = new FederatedCohort();
+          c.create("cli-graph-cohort", "agent-1");
+          c.addMember(c.list()[0].id, "agent-2");
+          const g = new MembershipGraph();
+          g.build(c);
+          return { content: [{ type: "text", text: JSON.stringify(g.stats()) }] };
+        }
+        case "PrivacyBudgetChart.summary": {
+          const b = new PrivacyBudgetAggregator();
+          b.setBudget("cli-1", 10);
+          b.setBudget("cli-2", 10);
+          b.consume("cli-1", 8);
+          b.consume("cli-2", 2);
+          const c = new PrivacyBudgetChart();
+          const points = c.buildStacks(b);
+          return { content: [{ type: "text", text: JSON.stringify(c.summary(points)) }] };
+        }
+        case "AuditExplorer.byKind": {
+          const a = new PrivacyAudit();
+          a.record({ kind: "share", agentId: "cli", cohortId: "x" });
+          a.record({ kind: "share", agentId: "cli", cohortId: "x" });
+          a.record({ kind: "deny", agentId: "stranger", cohortId: "x", reason: "no_access" });
+          const e = new AuditExplorer();
+          return { content: [{ type: "text", text: JSON.stringify(e.byKind(a)) }] };
+        }
+        case "CohortReport.markdown": {
+          const c = new FederatedCohort();
+          c.create("cli", "agent-1");
+          const a = new PrivacyAudit();
+          a.record({ kind: "share", agentId: "cli", cohortId: "x" });
+          const r = new CohortReport();
+          const md = r.markdown(String(args.title ?? "CLI Report"), [
+            r.cohortSection(c),
+            r.auditSection(a, 1)
+          ]);
+          return { content: [{ type: "text", text: JSON.stringify({ markdown_len: md.length, has_title: md.includes("# ") }) }] };
+        }
         default:
           return { content: [{ type: "text", text: JSON.stringify({ error: `Unknown tool: ${name}` }) }] };
       }
@@ -4686,6 +5270,9 @@ var main = () => {
       case "federated":
         cmdFederated(rest);
         break;
+      case "cohortui":
+        cmdCohortUI(rest);
+        break;
       case "health":
         cmdHealth();
         break;
@@ -4734,6 +5321,10 @@ ${colorize("Commands:", BOLD)}
   ${colorize("federated demo", GREEN)}                      Run a federated demo
   ${colorize("federated share", GREEN)} <cohort> <content>  Share a memory into a cohort
   ${colorize("federated audit", GREEN)} <n>                Show recent privacy audit entries
+  ${colorize("cohortui list", GREEN)}                       List federated UI engines
+  ${colorize("cohortui demo", GREEN)}                      Run federated UI demo
+  ${colorize("cohortui tree", GREEN)}                      Show cohort tree visualization
+  ${colorize("cohortui report", GREEN)}                    Generate a markdown cohort report
   ${colorize("compat", GREEN)}                              OpenMemory compliance test
   ${colorize("health", GREEN)}                              MCP server health
   ${colorize("locales", GREEN)}                             Available locales
@@ -4754,6 +5345,9 @@ ${colorize("Examples:", BOLD)}
   ${colorize("$ amm.js federated demo", DIM)}
   ${colorize('$ amm.js federated share team-a "shared insight"', DIM)}
   ${colorize("$ amm.js federated audit 5", DIM)}
+  ${colorize("$ amm.js cohortui demo", DIM)}
+  ${colorize("$ amm.js cohortui tree", DIM)}
+  ${colorize("$ amm.js cohortui report", DIM)}
 `);
 };
 var cmdList = () => {
@@ -5134,6 +5728,90 @@ Federated engines (${idx.count()}):`, BOLD));
     }
     default:
       console.error(colorize(`Unknown federated subcommand: ${sub}`, RED));
+      process.exit(1);
+  }
+};
+var cmdCohortUI = (args) => {
+  const sub = args[0];
+  if (!sub) {
+    console.error(colorize("Usage: cohortui <list|demo|tree|report>", RED));
+    process.exit(1);
+  }
+  const idx = new FederatedCohortsUIMasterIndex();
+  switch (sub) {
+    case "list": {
+      console.log(colorize(`
+Federated UI engines (${idx.count()}):`, BOLD));
+      for (const item of idx.list()) {
+        console.log(`  ${colorize(item.name.padEnd(34), CYAN)} ${colorize("\u2022 " + item.layer, DIM)}  ${item.version}`);
+      }
+      return;
+    }
+    case "demo": {
+      const cohorts = new FederatedCohort();
+      const budgets = new PrivacyBudgetAggregator();
+      const audit = new PrivacyAudit();
+      const c = cohorts.create("team-x", "agent-1");
+      cohorts.addMember(c.id, "agent-2");
+      audit.record({ kind: "share", agentId: "agent-1", cohortId: c.id });
+      audit.record({ kind: "read", agentId: "agent-2", cohortId: c.id });
+      audit.record({ kind: "deny", agentId: "stranger", cohortId: c.id, reason: "no_access" });
+      budgets.setBudget("agent-1", 10);
+      budgets.setBudget("agent-2", 10);
+      budgets.consume("agent-1", 7);
+      budgets.consume("agent-2", 2);
+      const v = new CohortVisualizer();
+      const g = new MembershipGraph();
+      const ch = new PrivacyBudgetChart();
+      const ex = new AuditExplorer();
+      const rep = new CohortReport();
+      const trees = v.buildTree(cohorts);
+      g.build(cohorts);
+      const points = ch.buildStacks(budgets);
+      console.log(colorize("\nFederated UI demo:", BOLD));
+      console.log(`  cohorts       : ${trees.length}`);
+      console.log(`  graph edges   : ${g.stats().edges}`);
+      console.log(`  budget points : ${points.length}`);
+      console.log(`  max util      : ${(ch.summary(points).maxUtilization * 100).toFixed(0)}%`);
+      console.log(`  timeline buckets: ${ex.timeline(audit, 6e4).length}`);
+      console.log(`  audit by kind : ${JSON.stringify(ex.byKind(audit))}`);
+      const reportPreview = rep.markdown("Demo Report", [rep.cohortSection(cohorts), rep.budgetSection(budgets)]);
+      console.log(`  report chars  : ${reportPreview.length}`);
+      return;
+    }
+    case "tree": {
+      const cohorts = new FederatedCohort();
+      const c = cohorts.create("alpha", "agent-1", "moderate");
+      cohorts.addMember(c.id, "agent-2");
+      const c2 = cohorts.create("beta", "agent-3", "strict");
+      const v = new CohortVisualizer();
+      const trees = v.buildTree(cohorts);
+      const flat = v.flatten(trees);
+      console.log(colorize("\nCohort tree:", BOLD));
+      for (const node of flat) {
+        console.log(`  ${"  ".repeat(node.depth)}${node.type === "cohort" ? "\u{1F4C1}" : "\u{1F464}"} ${node.label}`);
+      }
+      return;
+    }
+    case "report": {
+      const cohorts = new FederatedCohort();
+      const audit = new PrivacyAudit();
+      const budgets = new PrivacyBudgetAggregator();
+      const c = cohorts.create("demo", "agent-1");
+      audit.record({ kind: "share", agentId: "agent-1", cohortId: c.id });
+      budgets.setBudget("agent-1", 10);
+      budgets.consume("agent-1", 4);
+      const r = new CohortReport();
+      const md = r.markdown("Cohort Report", [
+        r.cohortSection(cohorts),
+        r.budgetSection(budgets),
+        r.auditSection(audit)
+      ]);
+      console.log(md);
+      return;
+    }
+    default:
+      console.error(colorize(`Unknown cohortui subcommand: ${sub}`, RED));
       process.exit(1);
   }
 };

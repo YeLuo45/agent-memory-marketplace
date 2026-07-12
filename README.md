@@ -167,6 +167,27 @@ PrivacyAudit.recent             — Get the most recent privacy audit entries
 PrivacyBudgetAggregator.summary — Get the privacy budget summary
 ```
 
+### Batch 11/11 — Federated Cohorts UI (V5681+) — 6 engines (NEW · 2026-07-12)
+
+| Engine | Layer | Purpose |
+|--------|-------|---------|
+| `CohortVisualizer` | federated_ui | Hierarchical tree view of cohort + member tree with privacy filtering |
+| `MembershipGraph` | federated_ui | Agent ↔ cohort bipartite graph with BFS reachability |
+| `PrivacyBudgetChart` | federated_ui | Budget consumption stacks + utilization + SVG bars + warn thresholds |
+| `AuditExplorer` | federated_ui | Queryable audit log with timeline buckets + byKind + byAgent filters |
+| `CohortReport` | federated_ui | Markdown + CSV report generator for cohorts/budgets/audit |
+| `FederatedCohortsUIMasterIndex` | federated_ui | Batch 11/11 index |
+
+### 5 new MCP tools (CohortUI.* — 46 → 51 total)
+
+```
+CohortVisualizer.buildTree   — Build a hierarchical cohort tree
+MembershipGraph.stats        — Graph statistics (agents/cohorts/edges)
+PrivacyBudgetChart.summary   — Privacy budget utilization summary
+AuditExplorer.byKind         — Count audit entries grouped by kind
+CohortReport.markdown        — Generate markdown cohort report
+```
+
 ## UI Features
 
 - **🔍 Search** — by name, description, or use case (live filter)
@@ -216,6 +237,10 @@ node bin/amm.js federated list
 node bin/amm.js federated demo
 node bin/amm.js federated share team-a "shared insight"
 node bin/amm.js federated audit 5
+node bin/amm.js cohortui list
+node bin/amm.js cohortui demo
+node bin/amm.js cohortui tree
+node bin/amm.js cohortui report
 node bin/amm.js compat
 
 # Build production bundle (zero-dep runtime, 4 locales)
@@ -361,14 +386,15 @@ $ npx vitest run
  ✓ src/playback/PlaybackCore.test.ts (39 tests)
  ✓ src/federated/FederatedCore.test.ts (45 tests)
  ✓ src/data/i18n.test.ts (34 tests)        ← V10: 4-locale extended
+✓ src/federated_ui/FederatedUICore.test.ts (35 tests)  ← V11
  ✓ src/mcp/MCPServer.test.ts (23 tests)
 
- Test Files  12 passed (12)
-      Tests  348 passed (348)
-   Duration  ~3s
+ Test Files  13 passed (13)
+      Tests  383 passed (383)
+   Duration  ~2s
 ```
 
-**348/348 tests pass · 100% · ~3s**.
+**383/383 tests pass · 100% · ~2s**.
 
 ## Relationship to `agent-skills-marketplace`
 
@@ -378,11 +404,12 @@ This project is a **sister** to [`agent-skills-marketplace`](https://yeluo45.git
 Skills (what an agent KNOWS)        Memory (what an agent REMEMBERS)
 ─────────────────────────────────  ─────────────────────────────────
 agent-skills-marketplace           agent-memory-marketplace  ← you are here
-  11 engines · 11 tests              98 engines · 348 tests
+  11 engines · 11 tests              103 engines · 383 tests
   "Web Search", "Code Review",       "EpisodicStore", "ForgettingEngine",
    "TencentDB Memory"                 "MemoryHierarchy", "EventBus",
-                                     "MemorySnapshotter", "SecureChannel", ...
-                                     MCP: 46 tools
+                                     "MemorySnapshotter", "SecureChannel",
+                                     "CohortVisualizer", ...
+                                     MCP: 51 tools
                                      Locale: 4 (en · zh · ja · ko)
 ```
 

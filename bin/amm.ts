@@ -30,6 +30,10 @@
 //   federated demo                      Run a federated demo (cohort → share → secure → audit)
 //   federated share <cohort> <content>  Share a message into a cohort
 //   federated audit <n>                 Show recent privacy audit entries
+//   cohortui list                       List federated UI engines
+//   cohortui demo                       Run federated UI demo (tree → graph → chart → audit → report)
+//   cohortui tree                       Show cohort tree visualization
+//   cohortui report                     Generate a markdown cohort report
 //   compat                              Run OpenMemory compliance test
 //   health                              MCP server health check
 //   locales                             Show available locales
@@ -41,6 +45,7 @@ import { OpenMemoryAdapter, OpenMemoryComplianceTest } from '../src/mcp/OpenMemo
 import { EventBus, MemoryWatcher, StreamProducer, StreamConsumer, StreamingMasterIndex } from '../src/streaming/StreamingCore';
 import { MemorySnapshotter, TimelineView, TreeVisualizer, DiffEngine, StepReplay, ReplayCoordinator, PlaybackMasterIndex } from '../src/playback/PlaybackCore';
 import { FederatedCohort, FederatedMemoryShare, PrivacyBudgetAggregator, SecureChannel, SecureAggregation, PrivacyAudit, PrivacyBudgetEnforcer, FederatedMemoryIndex } from '../src/federated/FederatedCore';
+import { CohortVisualizer, MembershipGraph, PrivacyBudgetChart, AuditExplorer, CohortReport, FederatedCohortsUIMasterIndex } from '../src/federated_ui/FederatedUICore';
 
 const BOLD = '\x1b[1m';
 const CYAN = '\x1b[36m';
@@ -88,6 +93,9 @@ const main = (): void => {
         break;
       case 'federated':
         cmdFederated(rest);
+        break;
+      case 'cohortui':
+        cmdCohortUI(rest);
         break;
       case 'health':
         cmdHealth();
@@ -138,6 +146,10 @@ ${colorize('Commands:', BOLD)}
   ${colorize('federated demo', GREEN)}                      Run a federated demo
   ${colorize('federated share', GREEN)} <cohort> <content>  Share a memory into a cohort
   ${colorize('federated audit', GREEN)} <n>                Show recent privacy audit entries
+  ${colorize('cohortui list', GREEN)}                       List federated UI engines
+  ${colorize('cohortui demo', GREEN)}                      Run federated UI demo
+  ${colorize('cohortui tree', GREEN)}                      Show cohort tree visualization
+  ${colorize('cohortui report', GREEN)}                    Generate a markdown cohort report
   ${colorize('compat', GREEN)}                              OpenMemory compliance test
   ${colorize('health', GREEN)}                              MCP server health
   ${colorize('locales', GREEN)}                             Available locales
@@ -158,6 +170,9 @@ ${colorize('Examples:', BOLD)}
   ${colorize('$ amm.js federated demo', DIM)}
   ${colorize('$ amm.js federated share team-a "shared insight"', DIM)}
   ${colorize('$ amm.js federated audit 5', DIM)}
+  ${colorize('$ amm.js cohortui demo', DIM)}
+  ${colorize('$ amm.js cohortui tree', DIM)}
+  ${colorize('$ amm.js cohortui report', DIM)}
 `);
 };
 
@@ -540,6 +555,90 @@ const cmdFederated = (args: string[]): void => {
     }
     default:
       console.error(colorize(`Unknown federated subcommand: ${sub}`, RED));
+      process.exit(1);
+  }
+};
+
+const cmdCohortUI = (args: string[]): void => {
+  const sub = args[0];
+  if (!sub) {
+    console.error(colorize('Usage: cohortui <list|demo|tree|report>', RED));
+    process.exit(1);
+  }
+  const idx = new FederatedCohortsUIMasterIndex();
+  switch (sub) {
+    case 'list': {
+      console.log(colorize(`\nFederated UI engines (${idx.count()}):`, BOLD));
+      for (const item of idx.list()) {
+        console.log(`  ${colorize(item.name.padEnd(34), CYAN)} ${colorize('• ' + item.layer, DIM)}  ${item.version}`);
+      }
+      return;
+    }
+    case 'demo': {
+      const cohorts = new FederatedCohort();
+      const budgets = new PrivacyBudgetAggregator();
+      const audit = new PrivacyAudit();
+      const c = cohorts.create('team-x', 'agent-1');
+      cohorts.addMember(c.id, 'agent-2');
+      audit.record({ kind: 'share', agentId: 'agent-1', cohortId: c.id });
+      audit.record({ kind: 'read', agentId: 'agent-2', cohortId: c.id });
+      audit.record({ kind: 'deny', agentId: 'stranger', cohortId: c.id, reason: 'no_access' });
+      budgets.setBudget('agent-1', 10);
+      budgets.setBudget('agent-2', 10);
+      budgets.consume('agent-1', 7);
+      budgets.consume('agent-2', 2);
+      const v = new CohortVisualizer();
+      const g = new MembershipGraph();
+      const ch = new PrivacyBudgetChart();
+      const ex = new AuditExplorer();
+      const rep = new CohortReport();
+      const trees = v.buildTree(cohorts);
+      g.build(cohorts);
+      const points = ch.buildStacks(budgets);
+      console.log(colorize('\nFederated UI demo:', BOLD));
+      console.log(`  cohorts       : ${trees.length}`);
+      console.log(`  graph edges   : ${g.stats().edges}`);
+      console.log(`  budget points : ${points.length}`);
+      console.log(`  max util      : ${(ch.summary(points).maxUtilization * 100).toFixed(0)}%`);
+      console.log(`  timeline buckets: ${ex.timeline(audit, 60000).length}`);
+      console.log(`  audit by kind : ${JSON.stringify(ex.byKind(audit))}`);
+      const reportPreview = rep.markdown('Demo Report', [rep.cohortSection(cohorts), rep.budgetSection(budgets)]);
+      console.log(`  report chars  : ${reportPreview.length}`);
+      return;
+    }
+    case 'tree': {
+      const cohorts = new FederatedCohort();
+      const c = cohorts.create('alpha', 'agent-1', 'moderate');
+      cohorts.addMember(c.id, 'agent-2');
+      const c2 = cohorts.create('beta', 'agent-3', 'strict');
+      const v = new CohortVisualizer();
+      const trees = v.buildTree(cohorts);
+      const flat = v.flatten(trees);
+      console.log(colorize('\nCohort tree:', BOLD));
+      for (const node of flat) {
+        console.log(`  ${'  '.repeat(node.depth)}${node.type === 'cohort' ? '📁' : '👤'} ${node.label}`);
+      }
+      return;
+    }
+    case 'report': {
+      const cohorts = new FederatedCohort();
+      const audit = new PrivacyAudit();
+      const budgets = new PrivacyBudgetAggregator();
+      const c = cohorts.create('demo', 'agent-1');
+      audit.record({ kind: 'share', agentId: 'agent-1', cohortId: c.id });
+      budgets.setBudget('agent-1', 10);
+      budgets.consume('agent-1', 4);
+      const r = new CohortReport();
+      const md = r.markdown('Cohort Report', [
+        r.cohortSection(cohorts),
+        r.budgetSection(budgets),
+        r.auditSection(audit),
+      ]);
+      console.log(md);
+      return;
+    }
+    default:
+      console.error(colorize(`Unknown cohortui subcommand: ${sub}`, RED));
       process.exit(1);
   }
 };
