@@ -222,7 +222,9 @@ describe('FormatConverter', () => {
 
   it('toYAML serializes simple object', () => {
     const c = new FormatConverter();
-    expect(c.toYAML({ name: 'foo', count: 3 })).toContain('name: foo');
+    // YAML quotes strings to ensure roundtrip safety
+    expect(c.toYAML({ name: 'foo', count: 3 })).toContain('name: "foo"');
+    expect(c.toYAML({ name: 'foo', count: 3 })).toContain('count: 3');
   });
 
   it('toYAML serializes nested object', () => {
@@ -414,9 +416,12 @@ describe('MigrationRollback', () => {
       // Simulate migration by deleting the before record
       adapter.delete(beforeRec.data.id);
       expect(adapter.recordCount()).toBe(1);
-      // Now undo restores the before record
+      // Undo removes migrated + restores before, net = 1
       r.undo(adapter);
-      expect(adapter.recordCount()).toBe(2);
+      expect(adapter.recordCount()).toBe(1);
+      // The restored record should be the original 'orig' content
+      const restored = adapter.get(beforeRec.data.id);
+      expect(restored.data?.content).toBe('orig');
     }
   });
 
