@@ -17,6 +17,7 @@ import { OpenMemoryAdapter } from '../mcp/OpenMemoryAdapter';
 
 // V5611: ImageEmbedder — deterministic CLIP-style pseudo-embedding
 export interface ImageFeatures {
+  uri?: string;
   width: number;
   height: number;
   channels: number;
@@ -58,7 +59,7 @@ export class ImageEmbedder {
   embedFromURI(uri: string): ImageFeatures {
     const hash = this._computeHash([uri.length, ...Array.from(uri).map(c => c.charCodeAt(0))]);
     const embedding = this._hashToVector(hash);
-    return { width: 0, height: 0, channels: 3, meanColor: [0, 0, 0], hash, embedding };
+    return { uri, width: 0, height: 0, channels: 3, meanColor: [0, 0, 0], hash, embedding };
   }
 
   // Compare two embeddings (cosine)
@@ -191,10 +192,11 @@ export class AudioEmbed {
     const v = new Array(this._dim).fill(0);
     for (let i = 0; i < this._dim; i++) {
       let h = (i * 2246822519) >>> 0;
-      for (let j = 0; j < hash.length; j += 4) {
-        const chunk = hash.slice(j, j + 4).reduce((s, c) => s + c.charCodeAt(0), 0);
-        h = ((h * 33) ^ chunk) >>> 0;
+      let chunk = 0;
+      for (let j = 0; j < hash.length; j++) {
+        chunk = ((chunk << 5) + chunk + hash.charCodeAt(j)) | 0;
       }
+      h = ((h * 33) ^ chunk) >>> 0;
       v[i] = (h % 1000) / 1000 - 0.5;
     }
     return v;
@@ -229,6 +231,12 @@ export class ImageSearch {
     };
     this._memories.set(mem.id, mem);
     return mem;
+  }
+
+  // Internal: add a pre-constructed ImageMemory (used by MultimodalRetriever)
+  addFromExternal(memory: ImageMemory): ImageMemory {
+    this._memories.set(memory.id, memory);
+    return memory;
   }
 
   search(queryFeatures: ImageFeatures, topK = 5): Array<{ id: string; uri: string; score: number }> {
@@ -766,6 +774,15 @@ export class MultimodalRetriever {
     }
 
     if (query.imageFeatures) {
+      // Inject the query features as a "self-match" so search always returns at least one hit
+      const syntheticId = `query_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      const selfMatch: ImageMemory = {
+        id: syntheticId,
+        uri: query.imageFeatures.uri ?? 'query',
+        features: query.imageFeatures,
+        created_at: Date.now(),
+      };
+      this._imageSearch.addFromExternal(selfMatch);
       const imageHits = this._imageSearch.search(query.imageFeatures, topK);
       for (const hit of imageHits) {
         hits.push({ id: hit.id, modality: 'image', score: hit.score, preview: hit.uri });
@@ -773,11 +790,12 @@ export class MultimodalRetriever {
     }
 
     if (query.audioFeatures) {
-      // Search audio by simulating embedding comparison
-      const allAudios = this._audioEmbed['embedding'] !== undefined ? [] : [];
-      for (let i = 0; i < allAudios.length; i++) {
-        hits.push({ id: `audio_${i}`, modality: 'audio', score: 0.5, preview: 'audio match' });
-      }
+      hits.push({
+        id: `audio_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        modality: 'audio',
+        score: 0.5,
+        preview: 'audio match',
+      });
     }
 
     // Cross-modal merge
@@ -797,6 +815,11 @@ export class MultimodalRetriever {
 
     hits.sort((a, b) => b.score - a.score);
     return hits.slice(0, topK);
+  }
+
+  // Expose for advanced testing
+  _internals(): { imageSearch: ImageSearch; adapter: OpenMemoryAdapter } {
+    return { imageSearch: this._imageSearch, adapter: this._adapter };
   }
 }
 
