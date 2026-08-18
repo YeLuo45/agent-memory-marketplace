@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/yeluo45-agent-memory-marketplace-badge.png)](https://mseep.ai/app/yeluo45-agent-memory-marketplace)
+
 # Agent Memory Marketplace 🧠
 
 > A curated registry for **AI agent memory engines** — discover, integrate, and benchmark the long-term memory layer for Claude Code, Codex, and MCP agents.
